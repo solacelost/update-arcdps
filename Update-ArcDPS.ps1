@@ -231,6 +231,13 @@ Function Find-GuildWars2() {
     }
 }
 
+$DesktopDir = [system.environment]::GetFolderPath("Desktop")
+$SetupScript = "$DesktopDir\Update-ArcDPS Setup.lnk"
+if (Test-Path $SetupScript) {
+    Write-Host "Removing Bootstrapped setup shortcut"
+    Remove-Item -Force -Path $SetupScript
+}
+
 if ($Remove) {
     # Import the statefile and remove it, or find GW2 to identify Arc files in
     if (Test-Path $statefile) {
@@ -244,8 +251,7 @@ if ($Remove) {
     }
 
     # Remove the shortcut
-    $desktop = [system.environment]::GetFolderPath("Desktop")
-    $ShortcutFile = "$desktop\Guild Wars 2 - ArcDPS.lnk"
+    $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
     if (Test-Path $ShortcutFile) {
         Write-Host "Removing $ShortcutFile"
         Remove-Item -Force -Path $ShortcutFile
@@ -363,8 +369,7 @@ Write-Host "Download of $src and enabling of $enablers is complete."
 if ($CreateShortcut) {
     Write-Host ""
     Write-Host "Creating Desktop shortcut"
-    $desktop = [system.environment]::GetFolderPath("Desktop")
-    $ShortcutFile = "$desktop\Guild Wars 2 - ArcDPS.lnk"
+    $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
     $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
