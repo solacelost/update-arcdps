@@ -103,7 +103,7 @@ Function Download-Folder([string]$src,
     }
     # Make our destination if it doesn't exist
     if (!$(Test-Path($dst))) {
-        New-Item $dst -type directory -Force
+        New-Item $dst -type directory -Force | Out-Null
     }
     if ( $verbose.ispresent ) {
         Write-Host "`nRequested download of $src to $dst," `
@@ -120,12 +120,12 @@ Function Download-Folder([string]$src,
         $last = [DateTime]'1 Jan 1970 00:01'
     }
     # Identify the modified dates in the source
-    $dates = `
-      $site.parsedhtml.childnodes[1].childnodes[1].childnodes[1].childnodes | `
-      Where-Object {
-        $_.nodeName -eq "#text"
-    } | Select-Object -property data | `
-      Select-String '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'
+    $dates = $(
+        $site.parsedhtml.childnodes[1].childnodes[1].childnodes[1].childnodes | `
+          Where-Object {
+            $_.nodeName -eq "#text"
+          } | Select-Object -property data | Select-String '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'
+    )
     # Pick out the newest as an integer
     $latest = $($dates | ForEach-Object {
         [DateTime]$_.matches.value
@@ -137,7 +137,7 @@ Function Download-Folder([string]$src,
             Write-Host "Last updated on:          $last"
             Write-Host "Latest version available: $latest"
         }
-        Write-Host "Update to $dst is available, downloading files`n"
+        Write-Host "Update to $dst is available, downloading files"
         $doUpdate = $true
         $latest | Export-Clixml -path $dst/update.xml
     } else {
@@ -215,15 +215,26 @@ Function Find-GuildWars2() {
 }
 
 if ($Remove) {
-    # Find all the interesting files, and Gw2
+    # Import the statefile and remove it, or find GW2 to identify Arc files in
     if (Test-Path $statefile) {
         Write-Host "Identified previous choices saved in $statefile`n"
         $state = Import-Clixml -Path $statefile
+        Write-Host "Removing $statefile"
+        Remove-Item -Force -Path $statefile
     } else {
         $state = @{}
         $state['binpath'] = $(Find-GuildWars2) + '\bin64\'
     }
-    # These are the files that we're looking to remove
+
+    # Remove the shortcut
+    $desktop = [system.environment]::GetFolderPath("Desktop")
+    $ShortcutFile = "$desktop\Guild Wars 2 - ArcDPS.lnk"
+    if (Test-Path $ShortcutFile) {
+        Write-Host "Removing $ShortcutFile"
+        Remove-Item -Force -Path $ShortcutFile
+    }
+
+    # These are the main files that we're looking to remove
     $arcfiles = @( "README-links.txt",
      "arcdps.ini",
       "d3d9.dll",
@@ -233,28 +244,31 @@ if ($Remove) {
     # These are the extra directories
     $arcdirs = @( "buildtemplates", "extras" )
 
-    # Remove the statefile since we won't need it
-    Write-Host "Removing $statefile"
-    Remove-Item -Force -ErrorAction SilentlyContinue -Path $statefile
     # Remove all of the ArcDPS main files
     $arcfiles | ForEach-Object {
-        Write-Host ("Removing " + $state.binpath + $_)
-        Remove-Item -Force -ErrorAction SilentlyContinue `
-          -Path ($state.binpath + $_)
+        $arcfile = $state.binpath + $_
+        if (Test-Path $arcfile) {
+            Write-Host ("Removing $arcfile")
+            Remove-Item -Force -Path $arcfile
+        }
     }
     # Enumerate everything in the subdirectories
     $arcdirs | ForEach-Object {
         Get-ChildItem -ErrorAction SilentlyContinue ($state.binpath + $_) | `
           select -ExpandProperty Name | ForEach-Object {
             # and remove them from the base bindir, if they've been enabled
-            Write-Host ("Removing " + $state.binpath + $_)
-            Remove-Item -Force -ErrorAction SilentlyContinue `
-              -Path ($state.binpath + $_)
+            $arcfile = $state.binpath + $_
+            if (Test-Path $arcfile) {
+                Write-Host ("Removing $arcfile")
+                Remove-Item -Force -Path $arcfile
+            }
         }
         # Also remove the subdirectory
-        Write-Host ("Removing " + $state.binpath + $_)
-        Remove-Item -Force -ErrorAction SilentlyContinue -Recurse `
-          -Path ($state.binpath + $_)
+        $arcfile = $state.binpath + $_
+        if (Test-Path $arcfile) {
+            Write-Host ("Removing directory $arcfile")
+            Remove-Item -Force -Recurse -Path $arcfile
+        }
     }
     Write-Host "ArcDPS removed!"
     pause
@@ -348,6 +362,4 @@ if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
     & $dst/../Gw2-64.exe
-} else {
-    pause
 }
