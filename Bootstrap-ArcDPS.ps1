@@ -20,9 +20,9 @@ $Shortcut.Save()
 # Now, spawn a new powershell window as admin to enable locally unsigned scripts
 
 # Create a new process object that starts PowerShell
-$newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell"
+$newProcess = new-object System.Diagnostics.ProcessStartInfo "cmd.exe"
 # Specify Set-ExecutionPolicy as the command to run
-$newProcess.Arguments = "-c 'pause ; Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:`$False -Force -Scope LocalMachine ; pause'"
+$newProcess.Arguments = "/c `"powershell.exe -c 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force -Scope LocalMachine'`""
 # Indicate that the process should be elevated
 $newProcess.Verb = "runas"
 
