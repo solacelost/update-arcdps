@@ -11,7 +11,7 @@
     1. Click Start or press the Windows key on your keyboard
     1. Type "powershell"
     1. Right click the "Windows Powershell" Desktop app
-    1. Choose "Run as administrator" like below:
+    1. Choose "Run as administrator" like here:
         ![Run as Administrator](./docs_admin.png)
     1. Type `Get-ExecutionPolicy` to see what your execution policy is currently set to
     1. Type `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned` to enable the reocmmended policy configuration
@@ -52,7 +52,7 @@
         `Desktop\Update-ArcDPS.ps1 -Remove`
     1. You will see output like this:
         ![Uninstallation](./docs_uninstall.png)
-  1. Manipulating the shortcut
+1. Manipulating the shortcut
     1. If there's already a shortcut to Update-ArcDPS on your desktop (created with the -CreateShortcut option), you can just edit it!
     1. Right click on the "Guild Wars 2 - ArcDPS" shortcut and select properties
         ![Shortcut Properties](./docs_shortcut.png)
