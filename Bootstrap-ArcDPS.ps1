@@ -1,7 +1,7 @@
 # Methodology (and chunks of code) taken directly from https://blogs.msdn.microsoft.com/virtual_pc_guy/2010/09/23/a-self-elevating-powershell-script/
 
 <# Run this with the following:
-powershell -NoProfile -Command "wget 'https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1' -Outfile ($env:TEMP+'bootstrap.ps1');Start-Process Powershell.exe -ArgumentList ($env:TEMP+'bootstrap.ps1')"
+powershell -NoProfile -Command "wget 'https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1' -Outfile ($env:TEMP+'\bootstrap.ps1');Start-Process Powershell.exe -ArgumentList ('-ExecutionPolicy bypass -file '+$env:TEMP+'\bootstrap.ps1')"
 #>
 
 # Get the ID and security principal of the current user account
@@ -43,9 +43,9 @@ if ($myWindowsPrincipal.IsInRole($adminRole)) {
 
     # Start the new process
     [System.Diagnostics.Process]::Start($newProcess)
-    # Exit from the current, unelevated, process
     exit
 }
 
 # This runs elevated as Administrator
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+pause
