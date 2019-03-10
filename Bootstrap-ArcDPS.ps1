@@ -8,23 +8,25 @@ Invoke-WebRequest "https://github.com/solacelost/update-arcdps/raw/master/Update
 # Then, set it to be locally executable
 Unblock-File $ScriptPath
 
-# Drop a shortcut on the Desktop to setup the script
 $desktop = [system.environment]::GetFolderPath("Desktop")
-$ShortcutFile = "$desktop\Update-ArcDPS Setup.lnk"
+
+
+# Drop a shortcut on the Desktop to change execution policy
+$ShortcutFile = "$desktop\RemoteSigned Execution Policy.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell
+$Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
+$Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
+$Shortcut.Arguments = "-Command 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force'"
+$Shortcut.Save()
+# Fancy run as admin bit, just binary flipping the flag
+$bytes = [System.IO.File]::ReadAllBytes($ShortcutFile)
+$bytes[0x15] = $bytes[0x15] -bor 0x20                   #set byte 21 (0x15) bit 6 (0x20) ON
+[System.IO.File]::WriteAllBytes($ShortcutFile, $bytes)
+
+
+# Drop a shortcut on the Desktop to setup the script
+$ShortcutFile = "$desktop\Update-ArcDPS Setup.lnk"
 $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
 $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
 $Shortcut.Arguments = "-File $ScriptPath -CreateShortcut"
 $Shortcut.Save()
-
-# Now, spawn a new powershell window as admin to enable locally unsigned scripts
-
-# Create a new process object that starts PowerShell
-$newProcess = new-object System.Diagnostics.ProcessStartInfo "cmd.exe"
-# Specify Set-ExecutionPolicy as the command to run
-$newProcess.Arguments = "/c `"powershell.exe -c 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force -Scope LocalMachine ; echo `"this worked`" ; pause'`""
-# Indicate that the process should be elevated
-$newProcess.Verb = "runas"
-
-# Start the new process
-[System.Diagnostics.Process]::Start($newProcess)
