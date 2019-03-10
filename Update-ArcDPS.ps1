@@ -184,33 +184,50 @@ Function Download-Folder([string]$src,
 
 Function Find-GuildWars2() {
     Write-Host "Looking for Guild Wars 2..."
-    # Look in Program Files and (x86) by default
-    $gw2path = Get-ChildItem -Path "C:\Program F*" -Include 'Gw2-64.exe' `
-      -Recurse | select -ExpandProperty DirectoryName
-    # If we find just one, nailed it
+    # Reference https://www.vistax64.com/threads/how-to-stopping-a-search-after-the-file-is-found.156738/
+    # Find the first instance of Gw2-64.exe you can and stop looking
+    # Look in Program Files and (x86) first
+    $gw2path = &{
+        trap {
+            $error[0].exception.message
+            continue
+        }
+        Get-ChildItem "C:\Program F*" -Filter "Gw2-64.exe" -Recurse `
+          -ErrorAction SilentlyContinue | ForEach-Object {
+            throw $_.DirectoryName
+        }
+    }
+    # If we find just one, return it
     if ($($gw2path | Measure-Object).Count -eq 1) {
         Write-Host "GW2 path identified as $gw2path."
         Write-Output $gw2path
     } else {
         # Look in all drive letters globally
         Write-Host "Unable to find in default path, expanding search."
-        Get-CimInstance win32_logicaldisk -filter "DriveType='3'" | `
+        Get-CimInstance win32_logicaldisk -Filter "DriveType='3'" | `
           ForEach-Object {
             $drive_letter = $_.DeviceID
-            $gw2path = Get-ChildItem -Path "$drive_letter\" `
-              -Include 'Gw2-64.exe' -Recurse | `
-              select -ExpandProperty DirectoryName
+            $gw2path = &{
+                trap {
+                    $error[0].exception.message
+                    continue
+                }
+                Get-ChildItem "$drive_letter\*" -Filter "Gw2-64.exe" -Recurse `
+                  -ErrorAction SilentlyContinue | ForEach-Object {
+                    throw $_.DirectoryName
+                }
+            }
             if ($($gw2path | Measure-Object).Count -eq 1) {
                 Write-Host "GW2 path identified as $gw2path."
                 Write-Output $gw2path
-                break # Stop looking after first match
-                return
             }
         }
-        # Hard throw the error and abort if we couldn't find it
-        $ErrorActionPreference = "Stop"
-        $PSDefaultParameterValues['*:ErrorAction']='Stop'
-        Throw "Unable to identify Guild Wars 2 location."
+        if ($($gw2path | Measure-Object).Count -eq 0) {
+            # Hard throw the error and abort if we couldn't find it
+            $ErrorActionPreference = "Stop"
+            $PSDefaultParameterValues['*:ErrorAction']='Stop'
+            Throw "Unable to identify Guild Wars 2 location."
+        }
     }
 }
 
