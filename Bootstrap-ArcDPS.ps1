@@ -12,10 +12,9 @@ $myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myW
 $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 # Check to see if we are currently running "as Administrator"
 if ($myWindowsPrincipal.IsInRole($adminRole)) {
-    # We are running "as Administrator" - so change the title and background color to indicate this
-    $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + "(Elevated)"
-    $Host.UI.RawUI.BackgroundColor = "DarkBlue"
-    clear-host
+    # This runs elevated as Administrator
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:$False -Force -Scope LocalMachine
+    pause
 } else {
     $ScriptPath = $env:APPDATA + '\Update-ArcDPS.ps1'
     # First, download the Update-ArcDPS.ps1 script
@@ -45,7 +44,3 @@ if ($myWindowsPrincipal.IsInRole($adminRole)) {
     [System.Diagnostics.Process]::Start($newProcess)
     exit
 }
-
-# This runs elevated as Administrator
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:$False -Force -Scope LocalMachine
-pause
