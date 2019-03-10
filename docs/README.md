@@ -14,7 +14,7 @@
     1. Choose "Run as administrator" like here:
         ![Run as Administrator](./docs_admin.png)
     1. Type `Get-ExecutionPolicy` to see what your execution policy is currently set to
-    1. Type `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned` to enable the reocmmended policy configuration
+    1. Type `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned` to enable the recommended policy configuration
     1. Enter letter `a` to say `Yes to All` if prompted, like shown below:
         ![Setting Execution Policy](./docs_executionpolicy.png)
 1. Unblock the running of this file, if it's detected as running from a remote source (e.g. downloaded from the internet...)
