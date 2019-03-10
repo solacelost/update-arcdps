@@ -384,4 +384,6 @@ if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
     & $dst/../Gw2-64.exe
+} else {
+    pause
 }
