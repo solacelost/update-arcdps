@@ -47,5 +47,5 @@ if ($myWindowsPrincipal.IsInRole($adminRole)) {
 }
 
 # This runs elevated as Administrator
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm -Force -Scope LocalMachine
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:$False -Force -Scope LocalMachine
 pause
