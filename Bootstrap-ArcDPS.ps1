@@ -22,9 +22,11 @@ $Shortcut.Save()
 # Create a new process object that starts PowerShell
 $newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell"
 # Specify Set-ExecutionPolicy as the command to run
-$newProcess.Arguments = "-c 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:`$False -Force -Scope LocalMachine ; pause'"
+$newProcess.Arguments = "-c 'pause ; Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Confirm:`$False -Force -Scope LocalMachine ; pause'"
 # Indicate that the process should be elevated
 $newProcess.Verb = "runas"
 
 # Start the new process
 [System.Diagnostics.Process]::Start($newProcess)
+
+pause
