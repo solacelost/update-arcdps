@@ -85,7 +85,7 @@
 param (
     [switch]$Remove,
     [switch]$StartGW,
-    [swtich]$CreateShortcut,
+    [switch]$CreateShortcut,
     [string]$StateFile=($env:APPDATA + '\update_arcdps.xml')
 )
 
@@ -330,14 +330,23 @@ Write-Host "Download of $src and enabling of $enablers is complete."
 
 # Create the shortcut if you asked for it
 if ($CreateShortcut) {
-    $ShortcutFile = "$env:HOMEPATH\Desktop\Guild Wars 2 - ArcDPS.lnk"
+    Write-Host ""
+    Write-Host "Creating Desktop shortcut"
+    $desktop = [system.environment]::GetFolderPath("Desktop")
+    $ShortcutFile = "$desktop\Guild Wars 2 - ArcDPS.lnk"
+    $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
-    $Shortcut.TargetPath = "`"$PSCommandPath`" -StartGW2"
-    $Shortcut.WorkingDirectory = "$state.binpath"
+    $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
+    $Shortcut.Arguments = "-File $PSCommandPath -StartGW"
+    $Shortcut.WorkingDirectory = $state.binpath
+    $Shortcut.IconLocation = $state.binpath + '..\Gw2-64.exe'
     $Shortcut.Save()
 }
+
 # Start Guild Wars 2 if you asked for it
-if ($StartGW2) {
+if ($StartGW) {
+    Write-Host ""
+    Write-Host "Starting Guild Wars 2"
     & $dst/../Gw2-64.exe
 } else {
     pause
