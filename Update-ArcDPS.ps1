@@ -38,7 +38,12 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.2 - Enabled bootstrapping, removed requirement to modify execution policy and instead bypass it on the shortcuts
+    0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
+          Removed requirement to modify execution policy and instead
+            bypass it on the shortcuts
+          Made the Gw2-64.exe search abuse traps and throw to make it faster
+          Significant amount of embarrassing commit history during tests
+          Updated documentation to reflect changes
     0.1 - Initial public release
 
     LICENSE:
