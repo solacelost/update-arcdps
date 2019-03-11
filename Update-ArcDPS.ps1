@@ -373,7 +373,7 @@ if ($CreateShortcut) {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
-    $Shortcut.Arguments = "-File $PSCommandPath -StartGW"
+    $Shortcut.Arguments = "-ExecutionPolicy Bypass -File $PSCommandPath -StartGW"
     $Shortcut.WorkingDirectory = $state.binpath
     $Shortcut.IconLocation = $state.binpath + '..\Gw2-64.exe'
     $Shortcut.Save()
