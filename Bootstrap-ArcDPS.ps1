@@ -1,5 +1,5 @@
 <# Run this with the following:
-powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"
+powershell -c "iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"
 #>
 
 # First, download the Update-ArcDPS.ps1 script
