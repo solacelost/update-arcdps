@@ -1,5 +1,5 @@
 <# Run this with the following:
-powershell -c "iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"
+powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"
 #>
 
 # First, download the Update-ArcDPS.ps1 script
@@ -16,5 +16,5 @@ $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
 $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
 $Shortcut.Arguments = "-ExecutionPolicy Bypass -File $ScriptPath -CreateShortcut"
 $Shortcut.Save()
-Write-Host "`nScript is bootstrapped! Run the Update-ArcDPS setup shortcut on your desktop."
+Write-Host "`nUpdate-ArcDPS is bootstrapped! Run the `"Update-ArcDPS Setup`" shortcut on your desktop."
 pause
