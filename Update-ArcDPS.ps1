@@ -18,7 +18,7 @@
     the powershell window will hang open, allowing you to review the output.
 .PARAMETER CreateShortcut
     Automatically creates a shortcut on your Desktop that will run Update-ArcDPS
-    with the -StartGW flag enabled for future runs.
+    with the -StartGW flag enabled for future runs (bypasses Execution Policy)
 .PARAMETER StateFile
     The path to the Update-ArcDPS XML state file, used to track your enablers
     and Guild Wars 2 path between runs. If it doesn't exist, it will be created.
@@ -34,10 +34,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.1
+    SCRIPT VERSION: 0.2
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.2 - Enabled bootstrapping, removed requirement to modify execution policy and instead bypass it on the shortcuts
     0.1 - Initial public release
 
     LICENSE:
@@ -121,10 +122,11 @@ Function Download-Folder([string]$src,
     }
     # Identify the modified dates in the source
     $dates = $(
-        $site.parsedhtml.childnodes[1].childnodes[1].childnodes[1].childnodes | `
-          Where-Object {
-            $_.nodeName -eq "#text"
-          } | Select-Object -property data | Select-String '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'
+      $site.parsedhtml.childnodes[1].childnodes[1].childnodes[1].childnodes | `
+        Where-Object {
+          $_.nodeName -eq "#text"
+        } | Select-Object -property data | `
+        Select-String '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'
     )
     # Pick out the newest as an integer
     $latest = $($dates | ForEach-Object {
