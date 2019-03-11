@@ -14,9 +14,7 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
 1. Right click on your Start button and click "Run", or press Ctrl+R on your keyboard.
     ![Right Clicking Run](./docs_run.png)
 1. Copy the following and paste it into the "Open:" text box:
-```
-powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"
-```
+    `powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/master/Bootstrap-ArcDPS.ps1')"`
     ![Run Dialog](./docs_run2.png)
 1. Press OK on the Run dialog. Press Enter when prompted to close the window.
 1. Double-click the Update-ArcDPS Setup shortcut on your desktop to pick up below at the -CreateShortcut point.
