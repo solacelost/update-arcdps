@@ -13,6 +13,6 @@ $ShortcutFile = "$desktop\Update-ArcDPS Setup.lnk"
 Write-Host "Putting script in: $ShortcutFile"
 $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
 $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
-$Shortcut.Arguments = "-ExecutionPolicy Bypass -File $ScriptPath -CreateShortcut"
+$Shortcut.Arguments = "-File $ScriptPath -CreateShortcut"
 $Shortcut.Save()
 pause
