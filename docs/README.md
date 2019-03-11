@@ -1,6 +1,11 @@
 # Update-ArcDPS
-#### Update ArcDPS and optionally Start Guild Wars 2 after (so you can use a shortcut to this script instead of the traditional launcher)
+#### Update ArcDPS and start Guild Wars 2 afterwards (so you can use a shortcut to this script instead of the traditional launcher)
 ---
+
+### Why
+[ArcDPS](https://www.deltaconnected.com/arcdps/) is a DPS meter addon provided by some cool dudes over at deltaconnected. It helps you to improve your own ability to play the game by giving you a better idea of how you're doing. It also shows you how everyone else is doing, and provides you the ability to be a total jerk to people who aren't as invested in the game as you. Don't do that. Help them understand more, and let them play the game on their own terms - if they really don't want to perform better on the meters, that's their own perogative. Let everyone have fun playing the game the way they want!
+
+However, some of my guild mates had a hard time downloading ArcDPS or remembering how to keep it updated and a few other things. There are solutions out there for keeping it updated, but none of them were really "easy." I wanted a truly turnkey solution for them that would keep it updated through patches and bugfixes etc. This was my answer.
 
 ## Installation
 #### There are two options, depending on how much you trust me.
@@ -15,7 +20,7 @@ powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.
     ![Run Dialog](./docs_run2.png)
 1. Press OK on the Run dialog. Press Enter when prompted to close the window.
 1. Double-click the Update-ArcDPS Setup shortcut on your desktop to pick up below at the -CreateShortcut point.
-    ![Setup Shortcut](./docs_setup_sortcut.png)
+    ![Setup Shortcut](./docs_setup_shortcut.png)
 
 ### The auditable way
 1. Download the latest Release from [the releases page](https://github.com/solacelost/update-arcdps/releases).
