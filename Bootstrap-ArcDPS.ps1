@@ -1,10 +1,10 @@
 <# Run this with the following:
-powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.2.1/Bootstrap-ArcDPS.ps1')"
+powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/medarco-edit/Bootstrap-ArcDPS.ps1')"
 #>
 
 # First, download the Update-ArcDPS.ps1 script
 $ScriptPath = $env:APPDATA + '\Update-ArcDPS.ps1'
-Invoke-WebRequest "https://github.com/solacelost/update-arcdps/raw/0.2.1/Update-ArcDPS.ps1" -OutFile $ScriptPath
+Invoke-WebRequest "https://github.com/solacelost/update-arcdps/raw/medarco-edit/Update-ArcDPS.ps1" -OutFile $ScriptPath
 
 $desktop = [system.environment]::GetFolderPath("Desktop")
 

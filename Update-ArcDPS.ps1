@@ -199,7 +199,7 @@ Function Find-GuildWars2() {
             $error[0].exception.message
             continue
         }
-        Get-ChildItem "C:\Program F*" -Filter "Gw2-64.exe" -Recurse `
+        Get-ChildItem "D:\*" -Filter "Gw2-64.exe" -Recurse `
           -ErrorAction SilentlyContinue | ForEach-Object {
             throw $_.DirectoryName
         }
@@ -209,32 +209,10 @@ Function Find-GuildWars2() {
         Write-Host "GW2 path identified as $gw2path."
         Write-Output $gw2path
     } else {
-        # Look in all drive letters globally
-        Write-Host "Unable to find in default path, expanding search."
-        Get-CimInstance win32_logicaldisk -Filter "DriveType='3'" | `
-          ForEach-Object {
-            $drive_letter = $_.DeviceID
-            $gw2path = &{
-                trap {
-                    $error[0].exception.message
-                    continue
-                }
-                Get-ChildItem "$drive_letter\*" -Filter "Gw2-64.exe" -Recurse `
-                  -ErrorAction SilentlyContinue | ForEach-Object {
-                    throw $_.DirectoryName
-                }
-            }
-            if ($($gw2path | Measure-Object).Count -eq 1) {
-                Write-Host "GW2 path identified as $gw2path."
-                Write-Output $gw2path
-            }
-        }
-        if ($($gw2path | Measure-Object).Count -eq 0) {
-            # Hard throw the error and abort if we couldn't find it
-            $ErrorActionPreference = "Stop"
-            $PSDefaultParameterValues['*:ErrorAction']='Stop'
-            Throw "Unable to identify Guild Wars 2 location."
-        }
+        # Hard throw the error and abort if we couldn't find it
+        $ErrorActionPreference = "Stop"
+        $PSDefaultParameterValues['*:ErrorAction']='Stop'
+        Throw "Unable to identify Guild Wars 2 location."
     }
 }
 
