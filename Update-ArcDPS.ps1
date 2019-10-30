@@ -38,6 +38,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.1 - Corrected breaking bugs
     0.3 - Removed legacy content (buildtemplates, extras)
     0.2.2 - Corrected searching, added option for exact match
     0.2.1 - Adjusted bootstrap methodology
@@ -100,7 +101,7 @@ param (
     [string]$ExactPath
 )
 
-$scriptversion = '0.3'
+$scriptversion = '0.3.1'
 
 Function Download-Folder([string]$src,
                          [string]$dst,
