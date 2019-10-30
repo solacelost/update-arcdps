@@ -15,7 +15,7 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
     ![Right Clicking Run](./docs_run.png)
 2. Copy the following and paste it into the "Open:" text box:
     ```
-    powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.2.1/Bootstrap-ArcDPS.ps1')"
+    powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.3/Bootstrap-ArcDPS.ps1')"
     ````
 
     ![Run Dialog](./docs_run2.png)
