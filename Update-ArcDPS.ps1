@@ -34,11 +34,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.2
+    SCRIPT VERSION: 0.2.2
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.2.1 - Corrected searching, added option for exact match
+    0.2.2 - Corrected searching, added option for exact match
+    0.2.1 - Adjusted bootstrap methodology
     0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
           Removed requirement to modify execution policy and instead
             bypass it on the shortcuts
