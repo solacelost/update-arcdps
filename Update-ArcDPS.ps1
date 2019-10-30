@@ -34,7 +34,7 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.333
+    SCRIPT VERSION: 0.3
     Requires: Powershell v5 or higher.
 
     Version History:
@@ -90,6 +90,8 @@
     https://www.github.com/solacelost/update-arcdps
 #>
 #Requires -Version 5
+
+$scriptversion = '0.3'
 
 param (
     [switch]$Remove,
@@ -276,9 +278,13 @@ if ($Remove) {
         $state = Import-Clixml -Path $statefile
         Write-Host "Removing $statefile"
         Remove-Item -Force -Path $statefile
+
+        # Here is where I could handle version conflicts in state in the future
+
     } else {
         $state = @{}
         $state['binpath'] = $(Find-GuildWars2) + '\bin64\'
+        $state['version'] = $scriptversion
     }
 
     # Remove the shortcut
