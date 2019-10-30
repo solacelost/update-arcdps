@@ -91,16 +91,16 @@
 #>
 #Requires -Version 5
 
-$scriptversion = '0.3'
-
 param (
     [switch]$Remove,
     [switch]$StartGW,
     [switch]$CreateShortcut,
-    [string]$StateFile=($env:APPDATA + '\update_arcdps.xml'),
+    [string]$StateFile="$env:APPDATA\update_arcdps.xml",
     [string]$SearchPath="C:\Program F*",
     [string]$ExactPath
 )
+
+$scriptversion = '0.3'
 
 Function Download-Folder([string]$src,
                          [string]$dst,
