@@ -341,7 +341,7 @@ if (Test-Path $StateFile) {
     Write-Host "Identified previous choices saved in $StateFile`n"
     $state = Import-Clixml -Path $StateFile
     # Legacy stuff - ArcDPS no longer has extras or buildtemplates
-    if ( $state.ContainsKey('enablers') {
+    if ( $state.ContainsKey('enablers') ) {
         $state.Remove('enablers')
         $state | Export-Clixml -path $StateFile
     }
