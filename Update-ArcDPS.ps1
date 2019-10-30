@@ -38,6 +38,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.2.1 - Corrected searching, added option for exact match
     0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
           Removed requirement to modify execution policy and instead
             bypass it on the shortcuts
@@ -93,7 +94,8 @@ param (
     [switch]$StartGW,
     [switch]$CreateShortcut,
     [string]$StateFile=($env:APPDATA + '\update_arcdps.xml'),
-    [string]$SearchPath="C:\Program F*"
+    [string]$SearchPath="C:\Program F*",
+    [string]$ExactPath
 )
 
 Function Download-Folder([string]$src,
@@ -105,7 +107,7 @@ Function Download-Folder([string]$src,
     if ( $src -notmatch '\/$' ) {
         $src = "$src/"
     }
-    if ( $dst -notmatch '\/$' ) {
+    if ( $dst -notmatch '[\/]$' ) {
         $dst = "$dst/"
     }
     # Make our destination if it doesn't exist
@@ -121,8 +123,8 @@ Function Download-Folder([string]$src,
     $site = Invoke-WebRequest $src
 
     # Check the date that we last downloaded this src
-    if ( Test-Path $dst/update.xml) {
-        $last = Import-Clixml -path $dst/update.xml -EA SilentlyContinue
+    if ( Test-Path $dst\update.xml) {
+        $last = Import-Clixml -path $dst\update.xml -EA SilentlyContinue
     } else {
         $last = [DateTime]'1 Jan 1970 00:01'
     }
@@ -147,7 +149,7 @@ Function Download-Folder([string]$src,
         }
         Write-Host "Update to $dst is available, downloading files"
         $doUpdate = $true
-        $latest | Export-Clixml -path $dst/update.xml
+        $latest | Export-Clixml -path $dst\update.xml
     } else {
         if ( $verbose.ispresent ) {
             Write-Host "Last updated on:          $last"
@@ -191,7 +193,7 @@ Function Download-Folder([string]$src,
 }
 
 Function Find-GuildWars2() {
-    Write-Host "Looking for Guild Wars 2 in $SearchPath..."
+    Write-Host "Looking for Guild Wars 2 in $SearchPath"
     # Reference https://www.vistax64.com/threads/how-to-stopping-a-search-after-the-file-is-found.156738/
     # Find the first instance of Gw2-64.exe you can and stop looking
     # Look in Program Files and (x86) first
@@ -205,33 +207,29 @@ Function Find-GuildWars2() {
             throw $_.DirectoryName
         }
     }
-    # If we find just one, return it
+    # If we find just one, return it (we can't find 2)
     if ($($gw2path | Measure-Object).Count -eq 1) {
         Write-Host "GW2 path identified as $gw2path."
         Write-Output $gw2path
-    } else {
-        # Look in all drive letters globally
-        Write-Host "Unable to find in default path, expanding search."
-        $gw2path = $(
+    } else {  # Look in all drive letters globally
+        Write-Host "Unable to find in expected path, expanding search."
+        $gw2path = &{
             Get-CimInstance win32_logicaldisk -Filter "DriveType='3'" | `
               ForEach-Object {
+                trap {
+                    $error[0].exception.message
+                    continue
+                }
                 $drive_letter = $_.DeviceID
-                $thispath = &{
-                    trap {
-                        $error[0].exception.message
-                        continue
-                    }
-                    Get-ChildItem "$drive_letter\*" -Filter "Gw2-64.exe" -Recurse `
-                      -ErrorAction SilentlyContinue | ForEach-Object {
-                        throw $_.DirectoryName
-                    }
+                Write-Host "Checking drive $drive_letter"
+                Get-ChildItem "$drive_letter\*" -Filter "Gw2-64.exe" -Recurse `
+                  -ErrorAction SilentlyContinue | ForEach-Object {
+                    throw $_.DirectoryName
                 }
             }
-            if ($($thispath | Measure-Object).Count -eq 1) {
-                Write-Host "GW2 path identified as $thispath."
-                Write-Output "$thispath"
-            }
-        )
+        }
+        Write-Host "Identified Guild Wars 2 in the following locations:"
+        Write-Host "$gw2path"
         $numresults = $($gw2path | Measure-Object).Count
         if ($numresults -eq 0) {
             # Hard throw the error and abort if we couldn't find it
@@ -252,7 +250,7 @@ Function Find-GuildWars2() {
                     Write-Host "Please select an index from the list" `
                         "provided."
                 } else {
-                    Write-Output "$gw2path[$selection]"
+                    Write-Output $gw2path[$selection]
                     $correct = $true
                 }
             }
