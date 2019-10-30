@@ -91,16 +91,16 @@
 #>
 #Requires -Version 5
 
-$scriptversion = '0.3'
-
 param (
     [switch]$Remove,
     [switch]$StartGW,
     [switch]$CreateShortcut,
-    [string]$StateFile=($env:APPDATA + '\update_arcdps.xml'),
+    [string]$StateFile="$env:APPDATA\update_arcdps.xml",
     [string]$SearchPath="C:\Program F*",
     [string]$ExactPath
 )
+
+$scriptversion = '0.3'
 
 Function Download-Folder([string]$src,
                          [string]$dst,
@@ -341,7 +341,7 @@ if (Test-Path $StateFile) {
     Write-Host "Identified previous choices saved in $StateFile`n"
     $state = Import-Clixml -Path $StateFile
     # Legacy stuff - ArcDPS no longer has extras or buildtemplates
-    if ( $state.ContainsKey('enablers') {
+    if ( $state.ContainsKey('enablers') ) {
         $state.Remove('enablers')
         $state | Export-Clixml -path $StateFile
     }
