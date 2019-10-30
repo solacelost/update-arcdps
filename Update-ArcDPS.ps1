@@ -34,10 +34,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.2.2
+    SCRIPT VERSION: 0.3
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3 - Removed legacy content (buildtemplates, extras)
     0.2.2 - Corrected searching, added option for exact match
     0.2.1 - Adjusted bootstrap methodology
     0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
@@ -89,6 +90,8 @@
     https://www.github.com/solacelost/update-arcdps
 #>
 #Requires -Version 5
+
+$scriptversion = '0.3'
 
 param (
     [switch]$Remove,
@@ -275,9 +278,13 @@ if ($Remove) {
         $state = Import-Clixml -Path $statefile
         Write-Host "Removing $statefile"
         Remove-Item -Force -Path $statefile
+
+        # Here is where I could handle version conflicts in state in the future
+
     } else {
         $state = @{}
         $state['binpath'] = $(Find-GuildWars2) + '\bin64\'
+        $state['version'] = $scriptversion
     }
 
     # Remove the shortcut
@@ -294,7 +301,7 @@ if ($Remove) {
       "d3d9.dll.md5sum",
       "update.xml"
     )
-    # These are the extra directories
+    # These are the (historical) extra directories
     $arcdirs = @( "buildtemplates", "extras" )
 
     # Remove all of the ArcDPS main files
@@ -333,38 +340,14 @@ if ($Remove) {
 if (Test-Path $StateFile) {
     Write-Host "Identified previous choices saved in $StateFile`n"
     $state = Import-Clixml -Path $StateFile
+    # Legacy stuff - ArcDPS no longer has extras or buildtemplates
+    if ( $state.ContainsKey('enablers') {
+        $state.Remove('enablers')
+        $state | Export-Clixml -path $StateFile
+    }
 } else { # If it's not already there, we'll go ahead and do initial setup
     $state = @{}
-
-    $state['binpath'] = $(Find-GuildWars2) + '\bin64\'
-    $correct = $false
-    while ( ! $correct ) {
-        Write-Host "Select from the following things to enable:"
-        Write-Host "1) ArcDPS Extras"
-        Write-Host "2) ArcDPS Build Templates"
-        Write-Host "3) Both of the above!"
-        $selection = $(Read-Host -Prompt "Selection")
-        Switch -Exact ($selection) {
-            1 {
-                $state['enablers'] = @( "extras/" )
-                $correct = $true
-                break
-            }
-            2 {
-                $state['enablers'] = @( "buildtemplates/" )
-                $correct = $true
-                break
-            }
-            3 {
-                $state['enablers'] = @( "extras/", "buildtemplates/" )
-                $correct = $true
-                break
-            }
-            default {
-                Write-Host "Invalid selection!`n`n"
-            }
-        }
-    }
+    $state['binpath'] = "$(Find-GuildWars2)\bin64\"
     $state | Export-Clixml -path $StateFile
 }
 
@@ -380,20 +363,17 @@ Download-Folder -src $src -dst $dst -recursive
 
 Write-Host "`n`n"
 
-# Enable everything you wanted to
-$enablers = $state.enablers
-$enablers | ForEach {
-    Write-Host "Enabling $_ requested"
-    ls "$dst$_" | ForEach {
-        # Don't overwrite the main update.xml, please...
-        if ( $_.name -ne "update.xml" ) {
-            Copy-Item -path $_.fullname -destination $dst
-        }
+# Remove any legacy extras
+@( "buildtemplates", "extras" ) | ForEach {
+    $dll = "$($dst)d3d9_arcdps_$($_).dll"
+    if ( Test-Path "$dll" ) {
+        Write-Host "Removing legacy installation of $_"
+        Remove-Item "$dll"
     }
 }
 
 Write-Host ""
-Write-Host "Download of $src and enabling of $enablers is complete."
+Write-Host "Download of $src is complete."
 
 # Create the shortcut if you asked for it
 if ($CreateShortcut) {
