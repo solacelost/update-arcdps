@@ -42,9 +42,8 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
 1. You will see output like this during the first run:
     ![Intial Setup](./docs_initialsetup.png)
 1. This means it has already found Guild Wars 2 on your computer (It starts by looking in Program Files, but will expand to looking at every drive it can find)
-    - If you have multiple GW2 installations (multiboxing), it will simply pick the first one it finds. If you're multiboxing, I suspect you can dig through the script and figure out what to change if you wanted it to be a different one. It's not going to officially be supported, sorry.
-1. Select the addons you would like to enable (reference the [ArcDPS README](https://www.deltaconnected.com/arcdps/) for information about these addons... I like Build Templates)
-1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above queries/detections in a file. The final output will look something like this:
+    - If you have multiple GW2 installations (multiboxing), it will simply pick the first one it finds. If you're multiboxing, you can try using the -SearchPath option, potentially with the -Exact flag, to adjust the path you would like it to search.
+1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above detection in a file. The final output will look something like this:
     ![Complete Setup](./docs_completeinstall.png)
 
 ### Update-ArcDPS is now installed and configured
