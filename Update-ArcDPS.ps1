@@ -7,22 +7,29 @@
     Reaches out to the hosting location for ArcDPS files, enumerates the
     directory index, recursively downloads all updated directories, and then
     places the base ArcDPS .dll into the Guild Wars 2 bin64 directory
-    (essentially, search-path hijacking D3D9), and then optionally enabling
-    additional ArcDPS projects (extras and build-templates) before optionally
-    starting Guild Wars 2 automatically.
+    (essentially, search-path hijacking D3D9) before optionally starting Guild
+    Wars 2 automatically.
 .PARAMETER Remove
-    Removes ArcDPS and all Update-ArcDPS state and update.xml files.
+    Removes ArcDPS, all Update-ArcDPS state and update.xml files.
 .PARAMETER StartGW
-    Automatically starts Guild Wars 2 after updating and enabling all additional
-    extensions. Without setting this flag, ArcDPS is updated and installed and
-    the powershell window will hang open, allowing you to review the output.
+    Automatically starts Guild Wars 2 after updating. Without setting this flag,
+    ArcDPS is updated and installed and the powershell window will hang open,
+    allowing you to review the output.
 .PARAMETER CreateShortcut
     Automatically creates a shortcut on your Desktop that will run Update-ArcDPS
     with the -StartGW flag enabled for future runs (bypasses Execution Policy)
+.PARAMETER AutoUpdate
+    Check for the latest release of Update-ArcDPS via GitHub API and download
+    the latest version automatically, exiting with a notice about the update
+    afterwards.
 .PARAMETER StateFile
-    The path to the Update-ArcDPS XML state file, used to track your enablers
-    and Guild Wars 2 path between runs. If it doesn't exist, it will be created.
-    The default path is in your AppData folder, named update_arcdps.xml.
+    The path to the Update-ArcDPS XML state file, used to track the  Guild Wars
+    2 path and script version between runs. If it doesn't exist, it will be
+    created. The default path is in your AppData folder, named
+    update_arcdps.xml.
+.PARAMETER SearchPath
+    The path that Update-ArcDPS should use to search for your Guild Wars 2
+    directory.
 .PARAMETER Path
     The path to the .
 .PARAMETER LiteralPath
@@ -34,21 +41,23 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3
+    SCRIPT VERSION: 0.3.2
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.2 - Corrected some help pages, corrected behavior in search, and added
+            auto-update functionality.
     0.3.1 - Corrected breaking bugs
-    0.3 - Removed legacy content (buildtemplates, extras)
+    0.3   - Removed legacy content (buildtemplates, extras)
     0.2.2 - Corrected searching, added option for exact match
     0.2.1 - Adjusted bootstrap methodology
-    0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
-          Removed requirement to modify execution policy and instead
-            bypass it on the shortcuts
-          Made the Gw2-64.exe search abuse traps and throw to make it faster
-          Significant amount of embarrassing commit history during tests
-          Updated documentation to reflect changes
-    0.1 - Initial public release
+    0.2   - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
+            Removed requirement to modify execution policy and instead
+              bypass it on the shortcuts
+            Made the Gw2-64.exe search abuse traps and throw to make it faster
+            Significant amount of embarrassing commit history during tests
+            Updated documentation to reflect changes
+    0.1   - Initial public release
 
     LICENSE:
     MIT License
@@ -96,12 +105,13 @@ param (
     [switch]$Remove,
     [switch]$StartGW,
     [switch]$CreateShortcut,
+    [switch]$AutoUpdate,
     [string]$StateFile="$env:APPDATA\update_arcdps.xml",
-    [string]$SearchPath="C:\Program F*",
-    [string]$ExactPath
+    [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.1'
+$scriptversion = '0.3.2'
+$needsupdate = $false
 
 Function Download-Folder([string]$src,
                          [string]$dst,
@@ -212,11 +222,8 @@ Function Find-GuildWars2() {
             throw $_.DirectoryName
         }
     }
-    # If we find just one, return it (we can't find 2)
-    if ($($gw2path | Measure-Object).Count -eq 1) {
-        Write-Host "GW2 path identified as $gw2path."
-        Write-Output $gw2path
-    } else {  # Look in all drive letters globally
+    # Look in all drive letters globally if we didn't find it
+    if ($($gw2path | Measure-Object).Count -eq 0) {
         Write-Host "Unable to find in expected path, expanding search."
         $gw2path = &{
             Get-CimInstance win32_logicaldisk -Filter "DriveType='3'" | `
@@ -233,34 +240,63 @@ Function Find-GuildWars2() {
                 }
             }
         }
-        Write-Host "Identified Guild Wars 2 in the following locations:"
-        Write-Host "$gw2path"
-        $numresults = $($gw2path | Measure-Object).Count
-        if ($numresults -eq 0) {
-            # Hard throw the error and abort if we couldn't find it
-            $ErrorActionPreference = "Stop"
-            $PSDefaultParameterValues['*:ErrorAction']='Stop'
-            Throw "Unable to identify Guild Wars 2 location."
-        } elseif ($numresults -ne 1) {
-            # It would appear that we found GW2 on multiple drives, perhaps?
-            $correct = $false
-            while ( ! $correct) {
-                Write-Host "Select the installation you would like to add" `
-                    "ArcDPS to from the following choices by their number:"
-                $gw2path | ForEach-Object {
-                    Write-Host ($gw2path.indexof($_) + 1)") $_"
-                }
-                $selection = ($(Read-Host -Prompt "Selection") -as [int]) - 1
-                if ($selection -eq -1 -or $selection -ge $numresults) {
-                    Write-Host "Please select an index from the list" `
-                        "provided."
-                } else {
-                    Write-Output $gw2path[$selection]
-                    $correct = $true
-                }
+    }
+    Write-Host "Identified Guild Wars 2 in the following locations:"
+    Write-Host "$gw2path"
+    $numresults = $($gw2path | Measure-Object).Count
+    if ($numresults -eq 0) {
+        # Hard throw the error and abort if we couldn't find it
+        $ErrorActionPreference = "Stop"
+        $PSDefaultParameterValues['*:ErrorAction']='Stop'
+        Throw "Unable to identify Guild Wars 2 location."
+    } elseif ($numresults -ne 1) {
+        # It would appear that we found GW2 on multiple locations
+        $correct = $false
+        while ( ! $correct) {
+            Write-Host "Select the installation you would like to add" `
+                "ArcDPS to from the following choices by their number:"
+            $gw2path | ForEach-Object {
+                Write-Host ($gw2path.indexof($_) + 1)") $_"
             }
-        } else {
-            Write-Output "$gw2path"
+            $selection = ($(Read-Host -Prompt "Selection") -as [int]) - 1
+            if ($selection -eq -1 -or $selection -ge $numresults) {
+                Write-Host "Please select an index from the list provided."
+            } else {
+                Write-Output $gw2path[$selection]
+                $correct = $true
+            }
+        }
+    } else {
+        Write-Output "$gw2path"
+    }
+}
+
+Function Get-YesOrNo([string]$prompt) {
+    $correct = $false
+    Until ($correct) {
+        $yesorno = $(Read-Host -Prompt $prompt).ToUpper()
+        Switch -Exact ($yesorno) {
+            "" {
+                $false
+                $correct = $true
+                break
+            }
+            "N" {
+                $false
+                $correct = $true
+                break
+            }
+            "Y" {
+                $true
+                $correct = $true
+                break
+            }
+            Default {
+                Write-Host "'$yesorno' is not a valid option."
+                Write-Host "To answer in the negative, please either press 'Enter' or type the letter 'n' and press 'Enter.'"
+                Write-Host "To answer in the affirmative, type the letter 'y' and press 'Enter.'"
+                break
+            }
         }
     }
 }
@@ -344,12 +380,73 @@ if (Test-Path $StateFile) {
     # Legacy stuff - ArcDPS no longer has extras or buildtemplates
     if ( $state.ContainsKey('enablers') ) {
         $state.Remove('enablers')
-        $state | Export-Clixml -path $StateFile
     }
+    if ( ! $state.ContainsKey('version') ) {
+        $state['version'] = $scriptversion
+    }
+    if ( ! $state.ContainsKey('autoupdate') ) {
+        if ($AutoUpdate) {
+            $state['autoupdate'] = $true
+        } else {
+            Write-Host "Update-ArcDPS is now capable of keeping itself updated."
+            $correct = $false
+            $state['autoupdate'] = $(
+                Get-YesOrNo -prompt "Would you like to enable this? (y/N)"
+            )
+        }
+    }
+    # This is where update code should go for version-specific major changes
+    # Ex:
+    # if ($state['version'] -ne $scriptversion) {
+    #     if ($state['version'] -eq "0.3.2") {
+    #         <post 0.3.2 update code here>
+    #         $state['version'] = "0.3.3"
+    #     }
+    #     if ($state['version'] -eq "0.3.3") {
+    #         <post 0.3.3 update code here>
+    #         $state['version'] = "0.4.0"
+    #     }
+    #     <etc until version catches up to $scriptversion>
+    # }
 } else { # If it's not already there, we'll go ahead and do initial setup
     $state = @{}
     $state['binpath'] = "$(Find-GuildWars2)\bin64\"
-    $state | Export-Clixml -path $StateFile
+    $state['version'] = $scriptversion
+    if ($AutoUpdate) {
+        $state['autoupdate'] = $true
+    } else {
+        Write-Host "Update-ArcDPS is capable of keeping itself updated."
+        $correct = $false
+        $state['autoupdate'] = $(
+            Get-YesOrNo -prompt "Would you like to enable AutoUpdate? (y/N)"
+        )
+    }
+}
+
+$state | Export-Clixml -path $StateFile
+
+if ($state['autoupdate'] -or $AutoUpdate) {
+    $UpdateInfo = $(Invoke-WebRequest https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
+    $LatestVersion = $(ConvertFrom-Json $UpdateInfo.content).tag_name
+    if ($LatestVersion -ne $scriptversion) {
+        Write-Host "Update-ArcDPS version $LatestVersion is available. Downloading." -NoNewLine
+        Invoke-WebRequest `
+            -URI https://github.com/solacelost/update-arcdps/archive/$LatestVersion.zip `
+            -OutFile $PSScriptRoot/Update-ArcDPS.zip
+        Write-Host "." -NoNewLine
+        Expand-Archive `
+            -path $PSScriptRoot/Update-ArcDPS.zip `
+            -DestinationPath $PSScriptRoot
+        Write-Host "."
+        Copy-Item `
+            $PSScriptRoot/update-arcdps-$LatestVersion/*.ps1 `
+            $PSScriptRoot/
+        Remove-Item $PSScriptRoot/update-arcdps-$LatestVersion -recurse
+        Remove-Item $PSScriptRoot/Update-ArcDPS.zip
+        Write-Host "New version of Update-ArcDPS is installed. Please rerun this script via your normal shortcut."
+        pause
+        exit
+    }
 }
 
 # Download ArcDPS
