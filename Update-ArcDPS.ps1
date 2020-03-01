@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3.6
+    SCRIPT VERSION: 0.3.7
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.7 - Final fix for permissions - add the addons directory to the
+            permissions fix for ArcDPS to store its own configuration in.
     0.3.6 - Fix for variable escaping under certain path situations for the
             last patch.
     0.3.5 - Check for write permissions on binpath and correct them if we don't
@@ -117,7 +119,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.6'
+$scriptversion = '0.3.7'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
@@ -410,6 +412,7 @@ if (Test-Path $StateFile) {
     #     }
     #     <etc until version catches up to $scriptversion>
     # }
+    $state | Export-Clixml -path $StateFile
 } else { # If it's not already there, we'll go ahead and do initial setup
     $state = @{}
     $state['binpath'] = "$(Find-GuildWars2)\bin64\"
@@ -422,9 +425,9 @@ if (Test-Path $StateFile) {
             Get-YesOrNo -prompt "Would you like to enable AutoUpdate? (y/N)"
         )
     }
+    $state | Export-Clixml -path $StateFile
 }
 
-$state | Export-Clixml -path $StateFile
 
 if ($state.autoupdate -or $AutoUpdate) {
     $UpdateInfo = $(Invoke-WebRequest https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
@@ -450,11 +453,6 @@ if ($state.autoupdate -or $AutoUpdate) {
     }
 }
 
-# Download ArcDPS
-$src = 'https://www.deltaconnected.com/arcdps/x64/'
-# To our GW2/bin64 directory
-$dst = $state.binpath
-
 $testpath = $($state.binpath + "/test.txt")
 Write-Output "Test" | Out-File -EA 0 -FilePath $testpath
 if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0) {
@@ -463,19 +461,26 @@ if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0)
     $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule($UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
     $modify_path = $state.binpath
+    $modify_path_2 = Join-Path $state.binpath ..
+    $modify_path_3 = Join-Path $modify_path_2 addons
     $xml_path = $($env:temp + "/acl.xml")
     $Acl | Export-Clixml -path $xml_path
+
     Write-Host "We need to enable permissions for you to be able to install/update ArcDPS.`n"
     Write-Host "Please accept the Windows UAC prompt when it appears to enable this functionality."
     pause
-    Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "`$Acl = `$(Import-Clixml '$xml_path') ; Set-Acl '$modify_path' `$Acl"
+    # This extremely long line renders our variables out and updates filesystem
+    #   permissions for the binpath and binpath/../addons directories (both are
+    #   necessary for the ability to update and run ArcDPS)
+    Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "`$Acl = `$(Import-Clixml '$xml_path') ; Set-Acl '$modify_path' `$Acl ; New-Item -Path '$modify_path_2' -Name 'addons' -ItemType 'directory' -EA 0 ; Set-Acl '$modify_path_3' `$Acl"
     Write-Host "The directory permissions should have been modified by the pop-up window.`n"
     Write-Host "We need to exit and relaunch the script to enable access."
     pause
     Remove-Item $xml_path
+    Remove-Item $testpath
     exit
 }
-
+Remove-Item $testpath
 
 $SetupScript = "$DesktopDir\Update-ArcDPS Setup.lnk"
 if (Test-Path $SetupScript) {
@@ -483,6 +488,11 @@ if (Test-Path $SetupScript) {
     Remove-Item -Force -Path $SetupScript
 }
 
+
+# Download ArcDPS
+$src = 'https://www.deltaconnected.com/arcdps/x64/'
+# To our GW2/bin64 directory
+$dst = $state.binpath
 
 # Recursively, so we grab all subfolders too
 # NOTE: Download-Folder checks modification date and won't update if the listing
