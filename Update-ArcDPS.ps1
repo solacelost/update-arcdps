@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3.4
+    SCRIPT VERSION: 0.3.5
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.5 - Check for write permissions on binpath and correct them if we don't
+            have access.
     0.3.4 - Corrected scriptversion variable (I really need to automate updating
             versions between tags)
     0.3.3 - Fixed bad verb (Until vs While !)
@@ -113,7 +115,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.4'
+$scriptversion = '0.3.5'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
@@ -305,11 +307,6 @@ Function Get-YesOrNo([string]$prompt) {
 }
 
 $DesktopDir = [system.environment]::GetFolderPath("Desktop")
-$SetupScript = "$DesktopDir\Update-ArcDPS Setup.lnk"
-if (Test-Path $SetupScript) {
-    Write-Host "Removing Bootstrapped setup shortcut"
-    Remove-Item -Force -Path $SetupScript
-}
 
 if ($Remove) {
     # Import the statefile and remove it, or find GW2 to identify Arc files in
@@ -428,7 +425,7 @@ if (Test-Path $StateFile) {
 
 $state | Export-Clixml -path $StateFile
 
-if ($state['autoupdate'] -or $AutoUpdate) {
+if ($state.autoupdate -or $AutoUpdate) {
     $UpdateInfo = $(Invoke-WebRequest https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
     $LatestVersion = $(ConvertFrom-Json $UpdateInfo.content).tag_name
     if ($LatestVersion -ne $scriptversion) {
@@ -456,6 +453,37 @@ if ($state['autoupdate'] -or $AutoUpdate) {
 $src = 'https://www.deltaconnected.com/arcdps/x64/'
 # To our GW2/bin64 directory
 $dst = $state.binpath
+
+$testpath = $($state.binpath + "/test.txt")
+Write-Output "Test" | Out-File -EA 0 -FilePath $testpath
+if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0) {
+    Write-Host "We need to enable permissions for you to be able to install/update ArcDPS.`n"
+    Write-Host "Please accept the Windows UAC prompt if/when it appears to enable this functionality."
+    pause
+    $Acl = Get-Acl $state.binpath
+    $UserPrincipal = $(Get-Acl $env:appdata).Owner
+    $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        $UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow"
+    )
+    $Acl.SetAccessRule($Ar)
+    $modify_path = $state.binpath
+    $xml_path = $($env:temp + "/acl.xml")
+    $Acl | Export-Clixml -path $xml_path
+    Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "`$Acl = `$(Import-Clixml $xml_path) ; Set-Acl `"$modify_path`" `$Acl"
+    Remove-Item $xml_path
+    Write-Host "The directory permissions should have been modified by the pop-up window.`n"
+    Write-Host "We need to exit and relaunch the script to enable access."
+    pause
+    exit
+}
+
+
+$SetupScript = "$DesktopDir\Update-ArcDPS Setup.lnk"
+if (Test-Path $SetupScript) {
+    Write-Host "Removing Bootstrapped setup shortcut"
+    Remove-Item -Force -Path $SetupScript
+}
+
 
 # Recursively, so we grab all subfolders too
 # NOTE: Download-Folder checks modification date and won't update if the listing
