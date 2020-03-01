@@ -23,6 +23,9 @@
     The path to the Update-ArcDPS XML state file, used to track your enablers
     and Guild Wars 2 path between runs. If it doesn't exist, it will be created.
     The default path is in your AppData folder, named update_arcdps.xml.
+.PARAMETER SearchPath
+    The path that Update-ArcDPS should use to search for your Guild Wars 2
+    directory.
 .PARAMETER Path
     The path to the .
 .PARAMETER LiteralPath
@@ -34,21 +37,22 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3
+    SCRIPT VERSION: 0.3.2
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.2 - Corrected some help pages
     0.3.1 - Corrected breaking bugs
-    0.3 - Removed legacy content (buildtemplates, extras)
+    0.3   - Removed legacy content (buildtemplates, extras)
     0.2.2 - Corrected searching, added option for exact match
     0.2.1 - Adjusted bootstrap methodology
-    0.2 - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
-          Removed requirement to modify execution policy and instead
-            bypass it on the shortcuts
-          Made the Gw2-64.exe search abuse traps and throw to make it faster
-          Significant amount of embarrassing commit history during tests
-          Updated documentation to reflect changes
-    0.1 - Initial public release
+    0.2   - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
+            Removed requirement to modify execution policy and instead
+              bypass it on the shortcuts
+            Made the Gw2-64.exe search abuse traps and throw to make it faster
+            Significant amount of embarrassing commit history during tests
+            Updated documentation to reflect changes
+    0.1   - Initial public release
 
     LICENSE:
     MIT License
@@ -97,11 +101,10 @@ param (
     [switch]$StartGW,
     [switch]$CreateShortcut,
     [string]$StateFile="$env:APPDATA\update_arcdps.xml",
-    [string]$SearchPath="C:\Program F*",
-    [string]$ExactPath
+    [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.1'
+$scriptversion = '0.3.2'
 
 Function Download-Folder([string]$src,
                          [string]$dst,
