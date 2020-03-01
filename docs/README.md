@@ -15,7 +15,7 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
     ![Right Clicking Run](./docs_run.png)
 2. Copy the following and paste it into the "Open:" text box:
     ```
-    powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/feature/update-taco/Bootstrap-ArcDPS.ps1')"
+    powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/feature/add-taco/Bootstrap-ArcDPS.ps1')"
     ````
 
     ![Run Dialog](./docs_run2.png)
@@ -26,7 +26,7 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
 ### The auditable way
 1. Download the latest Release from [the releases page](https://github.com/solacelost/update-arcdps/releases).
 1. Unzip it to the directory of your choice - the location doesn't matter
-1. Review the script on your computer to ensure you're okay with what it does - you only need the Update-ArcDPS.ps1 script, not the Bootstrap. You can reach it via the [raw URL](https://raw.githubusercontent.com/solacelost/update-arcdps/feature/update-taco/Update-ArcDPS.ps1) and copy/paste, if you like.
+1. Review the script on your computer to ensure you're okay with what it does - you only need the Update-ArcDPS.ps1 script, not the Bootstrap. You can reach it via the [raw URL](https://raw.githubusercontent.com/solacelost/update-arcdps/feature/add-taco/Update-ArcDPS.ps1) and copy/paste, if you like.
 1. Open a PowerShell window with the -executionpolicy Bypass option set and run the script with -CreateShortcut:
     1. Suppose you unzipped Update-ArcDPS.ps1 to your Desktop on the user named James.
     1. Right click on your Start button and click "Run", or press Ctrl+R on your keyboard.
