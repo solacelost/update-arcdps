@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3.2
+    SCRIPT VERSION: 0.3.4
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.4 - Corrected scriptversion variable (I really need to automate updating
+            versions between tags)
     0.3.3 - Fixed bad verb (Until vs While !)
     0.3.2 - Corrected some help pages, corrected behavior in search, and added
             auto-update functionality.
@@ -111,7 +113,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.2'
+$scriptversion = '0.3.4'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
