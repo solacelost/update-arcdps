@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3.5
+    SCRIPT VERSION: 0.3.6
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.6 - Fix for variable escaping under certain path situations for the
+            last patch.
     0.3.5 - Check for write permissions on binpath and correct them if we don't
             have access.
     0.3.4 - Corrected scriptversion variable (I really need to automate updating
@@ -115,7 +117,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.5'
+$scriptversion = '0.3.6'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
@@ -416,7 +418,6 @@ if (Test-Path $StateFile) {
         $state['autoupdate'] = $true
     } else {
         Write-Host "Update-ArcDPS is capable of keeping itself updated."
-        $correct = $false
         $state['autoupdate'] = $(
             Get-YesOrNo -prompt "Would you like to enable AutoUpdate? (y/N)"
         )
@@ -457,23 +458,21 @@ $dst = $state.binpath
 $testpath = $($state.binpath + "/test.txt")
 Write-Output "Test" | Out-File -EA 0 -FilePath $testpath
 if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0) {
-    Write-Host "We need to enable permissions for you to be able to install/update ArcDPS.`n"
-    Write-Host "Please accept the Windows UAC prompt if/when it appears to enable this functionality."
-    pause
     $Acl = Get-Acl $state.binpath
     $UserPrincipal = $(Get-Acl $env:appdata).Owner
-    $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule(
-        $UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow"
-    )
+    $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule($UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
     $modify_path = $state.binpath
     $xml_path = $($env:temp + "/acl.xml")
     $Acl | Export-Clixml -path $xml_path
-    Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "`$Acl = `$(Import-Clixml $xml_path) ; Set-Acl `"$modify_path`" `$Acl"
-    Remove-Item $xml_path
+    Write-Host "We need to enable permissions for you to be able to install/update ArcDPS.`n"
+    Write-Host "Please accept the Windows UAC prompt when it appears to enable this functionality."
+    pause
+    Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "`$Acl = `$(Import-Clixml '$xml_path') ; Set-Acl '$modify_path' `$Acl"
     Write-Host "The directory permissions should have been modified by the pop-up window.`n"
     Write-Host "We need to exit and relaunch the script to enable access."
     pause
+    Remove-Item $xml_path
     exit
 }
 
