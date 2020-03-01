@@ -45,6 +45,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3.3 - Fixed bad verb (Until vs While !)
     0.3.2 - Corrected some help pages, corrected behavior in search, and added
             auto-update functionality.
     0.3.1 - Corrected breaking bugs
@@ -273,7 +274,7 @@ Function Find-GuildWars2() {
 
 Function Get-YesOrNo([string]$prompt) {
     $correct = $false
-    Until ($correct) {
+    While (!$correct) {
         $yesorno = $(Read-Host -Prompt $prompt).ToUpper()
         Switch -Exact ($yesorno) {
             "" {
