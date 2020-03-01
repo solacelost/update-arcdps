@@ -41,7 +41,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.3.2 - Corrected some help pages
+    0.3.2 - Corrected some help pages, corrected behavior in search.
     0.3.1 - Corrected breaking bugs
     0.3   - Removed legacy content (buildtemplates, extras)
     0.2.2 - Corrected searching, added option for exact match
@@ -215,11 +215,8 @@ Function Find-GuildWars2() {
             throw $_.DirectoryName
         }
     }
-    # If we find just one, return it (we can't find 2)
-    if ($($gw2path | Measure-Object).Count -eq 1) {
-        Write-Host "GW2 path identified as $gw2path."
-        Write-Output $gw2path
-    } else {  # Look in all drive letters globally
+    # Look in all drive letters globally if we didn't find it
+    if ($($gw2path | Measure-Object).Count -eq 0) {
         Write-Host "Unable to find in expected path, expanding search."
         $gw2path = &{
             Get-CimInstance win32_logicaldisk -Filter "DriveType='3'" | `
@@ -236,35 +233,34 @@ Function Find-GuildWars2() {
                 }
             }
         }
-        Write-Host "Identified Guild Wars 2 in the following locations:"
-        Write-Host "$gw2path"
-        $numresults = $($gw2path | Measure-Object).Count
-        if ($numresults -eq 0) {
-            # Hard throw the error and abort if we couldn't find it
-            $ErrorActionPreference = "Stop"
-            $PSDefaultParameterValues['*:ErrorAction']='Stop'
-            Throw "Unable to identify Guild Wars 2 location."
-        } elseif ($numresults -ne 1) {
-            # It would appear that we found GW2 on multiple drives, perhaps?
-            $correct = $false
-            while ( ! $correct) {
-                Write-Host "Select the installation you would like to add" `
-                    "ArcDPS to from the following choices by their number:"
-                $gw2path | ForEach-Object {
-                    Write-Host ($gw2path.indexof($_) + 1)") $_"
-                }
-                $selection = ($(Read-Host -Prompt "Selection") -as [int]) - 1
-                if ($selection -eq -1 -or $selection -ge $numresults) {
-                    Write-Host "Please select an index from the list" `
-                        "provided."
-                } else {
-                    Write-Output $gw2path[$selection]
-                    $correct = $true
-                }
+    }
+    Write-Host "Identified Guild Wars 2 in the following locations:"
+    Write-Host "$gw2path"
+    $numresults = $($gw2path | Measure-Object).Count
+    if ($numresults -eq 0) {
+        # Hard throw the error and abort if we couldn't find it
+        $ErrorActionPreference = "Stop"
+        $PSDefaultParameterValues['*:ErrorAction']='Stop'
+        Throw "Unable to identify Guild Wars 2 location."
+    } elseif ($numresults -ne 1) {
+        # It would appear that we found GW2 on multiple locations
+        $correct = $false
+        while ( ! $correct) {
+            Write-Host "Select the installation you would like to add" `
+                "ArcDPS to from the following choices by their number:"
+            $gw2path | ForEach-Object {
+                Write-Host ($gw2path.indexof($_) + 1)") $_"
             }
-        } else {
-            Write-Output "$gw2path"
+            $selection = ($(Read-Host -Prompt "Selection") -as [int]) - 1
+            if ($selection -eq -1 -or $selection -ge $numresults) {
+                Write-Host "Please select an index from the list provided."
+            } else {
+                Write-Output $gw2path[$selection]
+                $correct = $true
+            }
         }
+    } else {
+        Write-Output "$gw2path"
     }
 }
 
