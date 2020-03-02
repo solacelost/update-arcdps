@@ -173,10 +173,16 @@ if ($updatetaco) {
         }
     }
     $SaveDirs | ForEach-Object {
-        if ( Test-Path $TacODownloadDir/$_ ) {
-            Write-Host "Saving $_"
-            Remove-Item -Force -Recurse -Path $TacOTempDir/$_ -EA 0 >$null
-            Move-Item -Force -Path "$TacODownloadDir/$_/*" -Destination "$TacOTempDir/$_"
+        $ThisDir = $_
+        Write-Host "Saving $_"
+        Get-ChildItem -Path "$TacODownloadDir/$_" -File -Recurse | ForEach-Object {
+            $RelativePath = $_.FullName.Replace($TacODownloadDir, "")
+            $ParentDirectory = Split-Path -Parent "$RelativePath"
+            if ( Test-Path "$TacOTempDir/$RelativePath" ) {
+                Remove-Item -Force -Path "$TacOTempDir/$RelativePath"
+            }
+            New-Item -Type Directory -Path "$TacOTempDir/$ParentDirectory" -EA 0 >$null
+            Move-Item -Force -Path "$TacODownloadDir/$RelativePath" -Destination "$TacOTempDir/$ParentDirectory"
         }
     }
     Write-Host "Removing old version"
@@ -205,7 +211,7 @@ if ($updatetaco) {
                 $ParentDirectory = Split-Path -Parent "$RelativePath"
                 if (! $(Test-Path "$TacODownloadDir/$RelativePath") ) {
                     New-Item -Type Directory -Path "$TacODownloadDir/$ParentDirectory" -EA 0 >$null
-                    Move-Item -Force -Path "$TacOTempDir/$RelativePath" -Destination "$TacOTempDir/$ParentDirectory"
+                    Move-Item -Force -Path "$TacOTempDir/$RelativePath" -Destination "$TacODownloadDir/$ParentDirectory"
                 }
             }
         }
