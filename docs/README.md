@@ -46,11 +46,14 @@ However, some of my guild mates had a hard time downloading ArcDPS or rememberin
     ```
 1. This means it has already found Guild Wars 2 on your computer (It starts by looking in Program Files, but will expand to looking at every drive it can find)
     - If you have multiple GW2 installations (multiboxing), it will simply pick the first one it finds. If you're multiboxing, you can try using the -SearchPath option, potentially with the -Exact flag, to adjust the path you would like it to search. This is also helpful if it's unable to find your installation for some reason (usually due to strangely named foleders or complex pathing)
-1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above detection in a file. The final output will look something like this (though some of this no longer displays):
-    ![Complete Setup](./docs_completeinstall.png)
+1. As part of setup, it will ask you some prompts regarding whether or how you want features enabled (Auto Update, Update-TacO, etc.). Answer with the letter "Y" or the letter "N" to the prompts as appropriate.
+1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above questions in a file.
+1. If you have chosen to enable Update-TacO alongside Update-ArcDPS there will be a longer delay as it reaches out and downloads the latest version of GW2TacO and Tekkit's Workshop marker pack, creating a dedicated shortcut for GW2TacO as well.
 
 ### Update-ArcDPS is now installed and configured
 You can double-click on the "Guild Wars 2 - ArcDPS" shortcut to automatically update ArcDPS to the newest version then launch Guild Wars 2 every time.
+
+If you have chosen to enable Update-ArcDPS to manage TacO and Tekkit's, then it will also update those at every launch and automatically launch GW2TacO when it notices that you have started your game client and gotten past the launcher. Please note that in order for GW2TacO to work, Guild Wars 2 must be in Windowed Fullscreen (Borderless) mode!
 
 ## Uninstallation
 #### You need to run the script with the -Remove switch
@@ -59,8 +62,4 @@ The easiest way to do that is to manipulate the existing shortcut
     ![Shortcut Properties](./docs_shortcut.png)
 1. At the end of the "Target:" textbox, you should see `-StartGW`. Replace that with `-Remove` and click "OK" to save the shortcut.
 1. Double-click the modified shortcut. Update-ArcDPS will remove the shortcut as part of the uninstallation, too, so it's all gone!
-
-## To do:
-- [x] Make it better than it used to be
-- [x] Provide for auto-update of Update-ArcDPS (wow that's meta)
-- [x] Make a real installer of some sort, or at least require less interactivity, since people seem to have a hard time with ExecutionPolicy
+1. If you have enabled Update-TacO functionality, this will also remove GW2TacO, all saved data, and all of the Update-TacO artifacts.
