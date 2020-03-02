@@ -67,3 +67,14 @@ The easiest way to do that is to manipulate the existing shortcut
 1. At the end of the "Target:" textbox, you should see `-StartGW`. Replace that with `-Remove` and click "OK" to save the shortcut.
 1. Double-click the modified shortcut. Update-ArcDPS will remove the shortcut as part of the uninstallation, too, so it's all gone!
 1. If you have enabled Update-TacO functionality, this will also remove GW2TacO, all saved data, and all of the Update-TacO artifacts.
+
+
+## Special Thanks
+Special thanks to those who gave me feedback, logs, access to their screens, and absolutely _invaluable_ testing time getting this all working!
+
+- Elven Chaos
+  - For an insane amount of testing, feedback, and help. Basically the QA director. I should probably pay him.
+- XJay5
+  - For lots of help finding and fixing new and elaborate kinds of bugs.
+- Bear Empress
+  - For letting me run random crap on her computer to increase my testing pool size.
