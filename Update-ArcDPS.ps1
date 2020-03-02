@@ -41,10 +41,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3.7
+    SCRIPT VERSION: 0.4.0
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.4.0 - Integrated Update-TacO.ps1
     0.3.7 - Final fix for permissions - add the addons directory to the
             permissions fix for ArcDPS to store its own configuration in.
     0.3.6 - Fix for variable escaping under certain path situations for the
@@ -119,7 +120,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.3.7'
+$scriptversion = '0.4.0'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
@@ -328,6 +329,14 @@ if ($Remove) {
         $state['version'] = $scriptversion
     }
 
+    # Remove this script
+    Remove-Item -Force -Path $MyInvocation.MyCommand.Definition -EA 0
+
+    # Remove Update-TacO.ps1
+    if (Test-Path "$PSScriptRoot/Update-TacO.ps1") {
+        "$PSScriptRoot/Update-TacO.ps1 -Remove"
+    }
+
     # Remove the shortcut
     $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
     if (Test-Path $ShortcutFile) {
@@ -386,7 +395,7 @@ if (Test-Path $StateFile) {
         $state.Remove('enablers')
     }
     if ( ! $state.ContainsKey('version') ) {
-        $state['version'] = $scriptversion
+        $state['version'] = '0.3'
     }
     if ( ! $state.ContainsKey('autoupdate') ) {
         if ($AutoUpdate) {
@@ -395,7 +404,15 @@ if (Test-Path $StateFile) {
             Write-Host "Update-ArcDPS is now capable of keeping itself updated."
             $correct = $false
             $state['autoupdate'] = $(
-                Get-YesOrNo -prompt "Would you like to enable this? (y/N)"
+                Get-YesOrNo -prompt "Would you like to enable automatic update of Update-ArcDPS? (y/N)"
+            )
+        }
+    }
+    if ($state.version -ne $scriptversion) {
+        if ($state.version.split('.')[1] -eq '3') {
+            Write-Host "Update-ArcDPS is now capable of updating and launching TacO with Tekkit's Workshop marker pack enabled."
+            $state['updatetaco'] = $(
+                Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO? (y/N)"
             )
         }
     }
@@ -412,6 +429,7 @@ if (Test-Path $StateFile) {
     #     }
     #     <etc until version catches up to $scriptversion>
     # }
+    $state['version'] = $scriptversion
     $state | Export-Clixml -path $StateFile
 } else { # If it's not already there, we'll go ahead and do initial setup
     $state = @{}
@@ -423,6 +441,10 @@ if (Test-Path $StateFile) {
         Write-Host "Update-ArcDPS is capable of keeping itself updated."
         $state['autoupdate'] = $(
             Get-YesOrNo -prompt "Would you like to enable AutoUpdate? (y/N)"
+        )
+        Write-Host "Update-ArcDPS can also update and launch TacO with Tekkit's Workshop marker pack enabled."
+        $state['updatetaco'] = $(
+            Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO? (y/N)"
         )
     }
     $state | Export-Clixml -path $StateFile
@@ -488,7 +510,6 @@ if (Test-Path $SetupScript) {
     Remove-Item -Force -Path $SetupScript
 }
 
-
 # Download ArcDPS
 $src = 'https://www.deltaconnected.com/arcdps/x64/'
 # To our GW2/bin64 directory
@@ -525,6 +546,14 @@ if ($CreateShortcut) {
     $Shortcut.WorkingDirectory = $state.binpath
     $Shortcut.IconLocation = $state.binpath + '..\Gw2-64.exe'
     $Shortcut.Save()
+    if ($state.updatetaco) {
+        if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
+            Invoke-WebRequest `
+                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
+                -OutFile "$PSScriptRoot/Update-TacO.ps1"
+        }
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" -CreateShortcut
+    }
 }
 
 # Start Guild Wars 2 if you asked for it
@@ -532,6 +561,14 @@ if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
     & $dst/../Gw2-64.exe
+    if ($state.updatetaco) {
+        if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
+            Invoke-WebRequest `
+                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
+                -OutFile "$PSScriptRoot/Update-TacO.ps1"
+        }
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" -StartTacO
+    }
 } else {
     pause
 }
