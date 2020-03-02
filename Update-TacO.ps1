@@ -210,6 +210,7 @@ if ($updatetaco) {
             }
         }
     }
+    Remove-Item -Force -Path $TacOTempDir -Recurse -EA 0 >$null
     $state['tacoversion'] = $tacoversion
     $state | Export-Clixml -path $TacOStateFile
 }
