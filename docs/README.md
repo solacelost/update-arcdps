@@ -5,7 +5,11 @@
 ### Why
 [ArcDPS](https://www.deltaconnected.com/arcdps/) is a DPS meter addon provided by some cool dudes over at deltaconnected. It helps you to improve your own ability to play the game by giving you a better idea of how you're doing. It also shows you how everyone else is doing, and provides you the ability to be a total jerk to people who aren't as invested in the game as you. Don't do that. Help them understand more, and let them play the game on their own terms - if they really don't want to perform better on the meters, that's their own perogative. Let everyone have fun playing the game the way they want!
 
-However, some of my guild mates had a hard time downloading ArcDPS or remembering how to keep it updated and a few other things. There are solutions out there for keeping it updated, but none of them were really "easy." I wanted a truly turnkey solution for them that would keep it updated through patches and bugfixes etc. This was my answer.
+[GW2TacO](http://www.gw2taco.com/) is a Tactical Overlay for Guild Wars 2 that lets you see tons of extra content overlayed on top of the Guild Wars 2 window, when it's in Full Screen Windowed (Borderless) mode. This extra overlay can show you the paths to follow to farm a map efficiently, how to complete a jumping puzzle, where traps are in a piece of content, and more.
+
+[Tekkit's Workshop](http://www.tekkitsworkshop.net/) is where one of the most subscribed Guild Wars 2 YouTubers keeps his advanced content packs for GW2TacO. He has some of the best routes, always updates with the newest content, and generally ensures his markers are aesthetically pleasing and easy to see and use in-game.
+
+Some of my guild mates had a hard time downloading ArcDPS or remembering how to keep it updated. Adding GW2TacO and a separate marker pack to the mix just made it worse. There are solutions out there for keeping them updated, but none of them were really "easy." Some of the solutions work well, but don't do everything transparently. I wanted a truly turnkey solution for them that would keep it updated, stay out of their way, and let those with weird situations tinker with the code themselves. This was my answer.
 
 ## Installation
 #### There are two options, depending on how much you trust me.
