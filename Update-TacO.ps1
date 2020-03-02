@@ -76,10 +76,9 @@ $TacOTempDir = Join-Path $env:temp TacO
 $TacODownloadDir = Join-Path $TacOPath TacO
 New-Item -Type Directory -Path $TacOPath -name TacO -EA 0 >$null
 $SaveFiles = (
-    "activationdata.xml", "notepad.txt", "poidata.xml", "TacOConfig.xml",
-    "Data", "POIs"
+    "activationdata.xml", "notepad.txt", "poidata.xml", "TacOConfig.xml"
 )
-
+$SaveDirs = ("Data", "POIs")
 
 if ($Remove) {
     Remove-Item $TacOPath -Recurse -EA 0
@@ -159,9 +158,7 @@ if ($updatetaco) {
         # TacO is apparently running
         Write-Host "Exiting exiting GW2TacO process to facilitate update - " `
             "Please approve admin request"
-        $(New-Object -com 'Shell.Application').ShellExecute(
-            'powershell', "-Command Stop-Process -name GW2TacO", '', 'runas'
-        )
+        Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "-Command Stop-Process -name GW2TacO"
         while (
             $(Get-Process -name GW2TacO -EA SilentlyContinue).count -gt 0
         ) { # TacO is still running
@@ -172,11 +169,18 @@ if ($updatetaco) {
     $SaveFiles | ForEach-Object {
         if ( Test-Path $TacODownloadDir/$_ ) {
             Write-Host "Saving $_"
-            Move-Item -Path $TacODownloadDir/$_ -Destination $TacOTempDir/
+            Move-Item -Force -Path $TacODownloadDir/$_ -Destination $TacOTempDir/
+        }
+    }
+    $SaveDirs | ForEach-Object {
+        if ( Test-Path $TacODownloadDir/$_ ) {
+            Write-Host "Saving $_"
+            Remove-Item -Force -Recurse -Path $TacOTempDir/$_ -EA 0 >$null
+            Move-Item -Force -Path "$TacODownloadDir/$_/*" -Destination "$TacOTempDir/$_"
         }
     }
     Write-Host "Removing old version"
-    Remove-Item -path $TacODownloadDir -Recurse
+    Remove-Item -Force -Path $TacODownloadDir -Recurse
     New-Item -Type Directory -Path $TacOPath -name TacO -EA 0 >$null
     Write-Host "Downloading new version of TacO"
     Invoke-WebRequest -uri $tacolink -OutFile $TacODownloadDir\gw2taco.zip
@@ -189,7 +193,21 @@ if ($updatetaco) {
     $SaveFiles | ForEach-Object {
         if ( Test-Path $TacOTempDir/$_ ) {
             Write-Host "Restoring $_"
-            Move-Item -Path $TacOTempDir/$_ -Destination $TacODownloadDir/
+            Move-Item -Force -Path $TacOTempDir/$_ -Destination $TacODownloadDir/
+        }
+    }
+    $SaveDirs | ForEach-Object {
+        if ( Test-Path $TacOTempDir/$_ ) {
+            $ThisDir = $_
+            Write-Host "Restoring $_"
+            Get-ChildItem -Path "$TacOTempDir/$_" -File -Recurse | ForEach-Object {
+                $RelativePath = $_.FullName.Replace($TacOTempDir, "")
+                $ParentDirectory = Split-Path -Parent "$RelativePath"
+                if (! $(Test-Path "$TacODownloadDir/$RelativePath") ) {
+                    New-Item -Type Directory -Path "$TacODownloadDir/$ParentDirectory" -EA 0 >$null
+                    Move-Item -Force -Path "$TacOTempDir/$RelativePath" -Destination "$TacOTempDir/$ParentDirectory"
+                }
+            }
         }
     }
     $state['tacoversion'] = $tacoversion
@@ -231,12 +249,26 @@ if ($CreateShortcut) {
 
 if ( $StartTacO ) {
     Write-Host "Starting GW2TacO as Admin as soon as Guild Wars 2 is open..."
-    While ($(
-        Get-Process | Where-Object { $_.ProcessName -eq 'Gw2-64' } | Measure
-    ).Count -eq 0) {
-        Sleep 5
+    if ( $(Get-Process -name GW2TacO -EA SilentlyContinue).count -gt 0 ) {
+        # TacO is apparently running
+        Write-Host "Exiting exiting GW2TacO process to facilitate launching - " `
+            "Please approve admin request"
+        Start-Process -FilePath powershell.exe -Verb RunAs -ArgumentList "-Command Stop-Process -name GW2TacO"
+        while (
+            $(Get-Process -name GW2TacO -EA SilentlyContinue).count -gt 0
+        ) { # TacO is still running
+            sleep 1
+        }
     }
-    $(New-Object -com 'Shell.Application').ShellExecute("$TacODownloadDir\GW2TacO.exe", '', '', 'runas')
+    # Attempt to detect when the launcher is closed and Guild Wars 2 starts properly
+    While ($(
+        Get-Process | Where-Object { $_.ProcessName -eq 'Gw2-64' } | Select -ExpandProperty Handles
+    ) -le 1000) {
+        sleep 5
+    }
+    Start-Process -FilePath "$TacODownloadDir\GW2TacO.exe" -Verb RunAs -WorkingDirectory "$TacODownloadDir"
 } else {
-    pause
+    if (!$CreateShortcut) {
+        pause
+    }
 }
