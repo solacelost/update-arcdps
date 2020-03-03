@@ -14,7 +14,7 @@ Write-Host "Putting script in: $ShortcutFile"
 $WScriptShell = New-Object -ComObject WScript.Shell
 $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
 $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
-$Shortcut.Arguments = "-ExecutionPolicy Bypass -File $ScriptPath -CreateShortcut"
+$Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`" -CreateShortcut"
 $Shortcut.Save()
 Write-Host "`nUpdate-ArcDPS is bootstrapped! Run the `"Update-ArcDPS Setup`" shortcut on your desktop."
 pause
