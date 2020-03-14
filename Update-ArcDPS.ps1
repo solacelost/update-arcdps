@@ -22,11 +22,11 @@
     Check for the latest release of Update-ArcDPS via GitHub API and download
     the latest version automatically, exiting with a notice about the update
     afterwards.
-.PARAMETER StateFile
-    The path to the Update-ArcDPS XML state file, used to track the  Guild Wars
-    2 path and script version between runs. If it doesn't exist, it will be
-    created. The default path is in your AppData folder, named
-    update_arcdps.xml.
+.PARAMETER InstallDirectory
+    The path to the Update-ArcDPS XML state file, installation directory, and
+    more. THe state file is used to track the  Guild Wars 2 path and script
+    version between runs. If it doesn't exist, it will be created.
+    The default path is in your AppData folder, and the state file is namedpdate_arcdps.xml.
 .PARAMETER SearchPath
     The path that Update-ArcDPS should use to search for your Guild Wars 2
     directory.
@@ -46,7 +46,6 @@
 
     Version History:
     0.4.2 - Corrected variable type that caused TacO to error when launching
-            
     0.4.1 - Added more options around Update-TacO, increased verbosity during
             various tasks, and provided for some sane TacO defaults
     0.4.0 - Integrated Update-TacO.ps1
@@ -120,12 +119,13 @@ param (
     [switch]$StartGW,
     [switch]$CreateShortcut,
     [switch]$AutoUpdate,
-    [string]$StateFile="$env:APPDATA\update_arcdps.xml",
+    [string]$InstallDirectory=$(Join-Path "$env:APPDATA" "Update-ArcDPS"),
     [string]$SearchPath="C:\Program F*"
 )
 
 $scriptversion = '0.4.2'
 $needsupdate = $false
+$statefile = Join-Path "$InstallDirectory" update_arcdps.xml
 
 Function Download-Folder([string]$src,
                          [string]$dst,
@@ -324,6 +324,25 @@ Function Get-YesOrNo([string]$Prompt, [switch]$DefaultYes) {
     }
 }
 
+Function CreateShortcuts {
+    Write-Host "Creating Desktop shortcut"
+    $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
+    $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
+    $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
+    $Shortcut.WorkingDirectory = "$($state.binpath)"
+    $Shortcut.IconLocation = $(Resolve_path $(Join-Path "$($state.binpath)" "..\Gw2-64.exe"))
+    $Shortcut.Save()
+    if ($state.updatetaco) {
+        $args_to_pass = @('-CreateShortcut' '-InstallDirectory' "$InstallDirectory")
+        if ($load_taco_defaults) {
+            $args_to_pass += '-SaneConfig'
+        }
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
+    }
+}
+
 $DesktopDir = [system.environment]::GetFolderPath("Desktop")
 
 if ($Remove) {
@@ -347,11 +366,16 @@ if ($Remove) {
 
     # Remove Update-TacO.ps1
     if (Test-Path "$PSScriptRoot/Update-TacO.ps1") {
-        "$PSScriptRoot/Update-TacO.ps1 -Remove"
+        "$PSScriptRoot/Update-TacO.ps1 -InstallDirectory $InstallDirectory -Remove"
     }
 
     if (Test-Path "$PSScriptRoot/TacOConfig_sane.xml") {
         Remove-Item -Force -Path "$PSScriptRoot/TacOConfig_sane.xml" -EA 0
+    }
+
+    # Remove anything left behind if we're in a proper subdirectory
+    if ($(Split-Path $PSScriptRoot -Leaf) -eq "Update-ArcDPS") {
+        Remove-Item -Force -Recurse -Path $PSScriptRoot -EA 0
     }
 
     # Remove the shortcut
@@ -437,7 +461,7 @@ if (Test-Path $StateFile) {
             if ($state['updatetaco']) {
                 Write-Host "Update-ArcDPS can load some sane defaults into your TacO settings to reduce the screen clutter. You can always reenable individual settings yourself."
                 $load_taco_defaults = $(
-                    Get-YesOrNo -prompt "Would you like to load these sane defaults?" -DefaultYes
+                    Get-YesOrNo -prompt "Would you like to load sane default options for TacO?" -DefaultYes
                 )
                 Write-Host "Update-ArcDPS no longer assumes you want to launch TacO every time."
                 $state['launchtaco'] = $(
@@ -445,6 +469,61 @@ if (Test-Path $StateFile) {
                 )
             }
             $state['version'] = '0.4.1'
+        }
+        if ($state.version -eq "0.4.1" -or $state.version -eq "0.4.2") {
+            $vestigal_file = $(Join-Path "$env:APPDATA" "Bootstrap-ArcDPS.ps1")
+            if (Test-Path "$vestigal_file") {
+                Remove-Item -Force -Path "$vestigal_file" -EA 0
+            }
+            Write-Host "Update-ArcDPS has now moved its default installation location to enable cleaner file storage."
+            $move_update_arcdps = $(
+                Get-YesOrNo -prompt "Would you like to move Update-ArcDPS into a unique folder to keep the files more contained?" -DefaultNo
+            )
+            if ($move_update_arcdps) {
+                Add-Type -AssemblyName System.Windows.Forms
+
+                # Default installation directory is a subfolder underneath APPDATA
+                $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
+                New-Item "$InstallDirectory" -ItemType "directory"
+
+                # Prompt for an alternate installation directory
+                $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
+                $FileBrowser = New-Object System.Windows.Forms.FolderBrowserDialog -Property @{
+                    SelectedPath = "$InstallDirectory"
+                    Description = "$BrowserText"
+                }
+                $ButtonPressed = $FileBrowser.ShowDialog()
+
+                # If you picked a different directory, remove our other created directory
+                if ($ButtonPressed -eq 'OK') {
+                    if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
+                        Remove-Item "$InstallDirectory" -recurse -force
+                        $InstallDirectory = "$($FileBrowser.SelectedPath)"
+                    }
+                }
+                $OldFiles = @(
+                    "Update-ArcDPS.ps1",
+                    "update_arcdps.xml",
+                    "Update-TacO.ps1",
+                    "Update-TacO",
+                    "TacOConfig_sane.xml"
+                )
+
+                Write-Host "Moving old files and folders into $InstallDirectory"
+                ForEach ($OldFile in $OldFiles) {
+                    $OldFilePath = $(Join-Path "$env:APPDATA" $OldFile)
+                    if (Test-Path "$OldFilePath") {
+                        Write-Host "$OldFilePath --> $(Join-Path $InstallDirectory $OldFile)"
+                        Move-Item "$OldFilePath" "$InstallDirectory"
+                    }
+                }
+                CreateShortcuts
+                Write-Host ""
+                Write-Host "You should relaunch the script via the new shortcut (Which you're free to rename/move now) on the Desktop."
+                pause
+                exit
+            }
+            $state['version'] = '0.4.3'
         }
     }
     # This is where update code should go for version-specific major changes
@@ -508,7 +587,8 @@ if ($state.autoupdate -or $AutoUpdate) {
         Write-Host "."
         Copy-Item `
             $PSScriptRoot/update-arcdps-$LatestVersion/*.ps1 `
-            $PSScriptRoot/
+            $PSScriptRoot/ `
+            -Exclude Bootstrap-ArcDPS.ps1
         Copy-Item `
             $PSScriptRoot/update-arcdps-$LatestVersion/TacOConfig_sane.xml `
             $PSScriptRoot/
@@ -528,11 +608,11 @@ if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0)
     $UserPrincipal = $(Get-Acl $env:appdata).Owner
     $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule($UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
-    $modify_path = $state.binpath
-    $modify_path_2 = Join-Path $state.binpath ..
-    $modify_path_3 = Join-Path $modify_path_2 addons
+    $modify_path = "$($state.binpath)"
+    $modify_path_2 = $(Resolve-Path $(Join-Path "$($state.binpath)" ".."))
+    $modify_path_3 = $(Join-Path $modify_path_2 "addons")
     $xml_path = $($env:temp + "/acl.xml")
-    $Acl | Export-Clixml -path $xml_path
+    $Acl | Export-Clixml -path "$xml_path"
 
     Write-Host "We need to enable permissions for you to be able to install/update ArcDPS.`n"
     Write-Host "Please accept the Windows UAC prompt when it appears to enable this functionality."
@@ -583,37 +663,14 @@ Write-Host "Download of $src is complete."
 # Create the shortcut if you asked for it
 if ($CreateShortcut) {
     Write-Host ""
-    Write-Host "Creating Desktop shortcut"
-    $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
-    $WScriptShell = New-Object -ComObject WScript.Shell
-    $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
-    $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
-    $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -StartGW"
-    $Shortcut.WorkingDirectory = $state.binpath
-    $Shortcut.IconLocation = $state.binpath + '..\Gw2-64.exe'
-    $Shortcut.Save()
-    if ($state.updatetaco) {
-        if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
-            Invoke-WebRequest `
-                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
-                -OutFile "$PSScriptRoot/Update-TacO.ps1"
-            Invoke-WebRequest `
-                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
-                -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
-        }
-        $args_to_pass = @('-CreateShortcut')
-        if ($load_taco_defaults) {
-            $args_to_pass += '-SaneConfig'
-        }
-        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
-    }
+    CreateShortcuts
 }
 
 # Start Guild Wars 2 if you asked for it
 if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
-    & $dst/../Gw2-64.exe
+    & $(Resolve-Path $(Join-Path "$dst" "../Gw2-64.exe"))
     Write-Host "Starting Update-TacO"
     if ($state.updatetaco) {
         if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
@@ -624,7 +681,7 @@ if ($StartGW) {
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
                 -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
-        $args_to_pass = @()
+        $args_to_pass = @('-InstallDirectory' "$InstallDirectory")
         if ($load_taco_defaults) {
             $args_to_pass += '-SaneConfig'
         }
