@@ -23,13 +23,13 @@ Some of my guild mates had a hard time downloading ArcDPS or remembering how to 
     ````
 
     ![Run Dialog](./docs_run2.png)
-3. Press OK on the Run dialog. Press Enter when prompted to close the window.
-4. Double-click the Update-ArcDPS Setup shortcut on your desktop to pick up below at the -CreateShortcut point.
+3. Press OK on the Run dialog. Pick an install location from the window that pops up, and press Enter when prompted to close the window.
+4. Double-click the Update-ArcDPS Setup shortcut on your desktop to pick up below after the "Auditable Way" guys catch up at the -CreateShortcut point.
     ![Setup Shortcut](./docs_setup_shortcut.png)
 
 ### The auditable way
 1. Download the latest Release from [the releases page](https://github.com/solacelost/update-arcdps/releases).
-1. Unzip it to the directory of your choice - the location doesn't matter
+1. Unzip it to the directory of your choice - the location doesn't matter, but you need to ensure you set `-InstallLocation` to match where you've unzipped it.
 1. Review the script on your computer to ensure you're okay with what it does - you only need the Update-ArcDPS.ps1 script, not the Bootstrap. You can reach it via the [raw URL](https://raw.githubusercontent.com/solacelost/update-arcdps/0.4.4/Update-ArcDPS.ps1) and copy/paste, if you like.
 1. Open a PowerShell window with the -executionpolicy Bypass option set and run the script with -CreateShortcut:
     1. Suppose you unzipped Update-ArcDPS.ps1 to your Desktop on the user named James.
@@ -39,7 +39,7 @@ Some of my guild mates had a hard time downloading ArcDPS or remembering how to 
     1. Run the script with the `-CreateShortcut` option switch set for initial setup and shortcut creation:
         Note: You may also choose to use the `-SearchPath "<PATH>"` parameter to change the default starting location that is searched to `<PATH>`.
         ```
-        Desktop\Update-ArcDPS.ps1 -CreateShortcut
+        Desktop\Update-ArcDPS.ps1 -CreateShortcut -InstallLocation ($env:UserProfile + "\Desktop")
         ````
 
 ### Both methods of installation are now at this point
@@ -49,7 +49,7 @@ Some of my guild mates had a hard time downloading ArcDPS or remembering how to 
     GW2 path identified as C:\Program Files\Guild Wars 2.
     ```
 1. This means it has already found Guild Wars 2 on your computer (It starts by looking in Program Files, but will expand to looking at every drive it can find)
-    - If you have multiple GW2 installations (multiboxing), it will simply pick the first one it finds. If you're multiboxing, you can try using the -SearchPath option, potentially with the -Exact flag, to adjust the path you would like it to search. This is also helpful if it's unable to find your installation for some reason (usually due to strangely named foleders or complex pathing)
+    - If you have multiple GW2 installations (multiboxing), it try to figure out which one you want, and maybe prompt you. If you're multiboxing, you can try using the -SearchPath option to adjust the path you would like it to search. This is also helpful if it's unable to find your installation for some reason (usually due to strangely named foleders or complex pathing)
 1. As part of setup, it will ask you some prompts regarding whether or how you want features enabled (Auto Update, Update-TacO, etc.). Answer with the letter "Y" or the letter "N" to the prompts as appropriate.
 1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above questions in a file.
 1. If you have chosen to enable Update-TacO alongside Update-ArcDPS there will be a longer delay as it reaches out and downloads the latest version of GW2TacO and Tekkit's Workshop marker pack, creating a dedicated shortcut for GW2TacO as well.
