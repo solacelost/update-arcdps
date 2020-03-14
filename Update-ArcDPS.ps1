@@ -333,7 +333,7 @@ Function Create-Shortcuts {
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
     $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
     $Shortcut.WorkingDirectory = $state.binpath
-    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe"))
+    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe")).Path
     $Shortcut.Save()
     if ($state.updatetaco) {
         $args_to_pass = @('-CreateShortcut', '-InstallDirectory', "$InstallDirectory")
@@ -688,7 +688,7 @@ if ($CreateShortcut) {
 if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
-    & $(Resolve-Path $(Join-Path "$dst" "../Gw2-64.exe"))
+    & $(Resolve-Path $(Join-Path "$dst" "../Gw2-64.exe")).Path
     Write-Host "Starting Update-TacO"
     if ($state.updatetaco) {
         if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
