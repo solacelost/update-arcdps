@@ -7,7 +7,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 # Default installation directory is a subfolder underneath APPDATA
 $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
-New-Item "$InstallDirectory" -ItemType "directory"
+New-Item "$InstallDirectory" -ItemType "directory" | Out-Null
 
 # Prompt for an alternate installation directory
 $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"

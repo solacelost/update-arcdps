@@ -333,14 +333,14 @@ Function Create-Shortcuts {
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
     $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
     $Shortcut.WorkingDirectory = "$($state.binpath)"
-    $Shortcut.IconLocation = $(Resolve_path $(Join-Path "$($state.binpath)" "..\Gw2-64.exe"))
+    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path "$($state.binpath)" "..\Gw2-64.exe"))
     $Shortcut.Save()
     if ($state.updatetaco) {
         $args_to_pass = @('-CreateShortcut', '-InstallDirectory', "$InstallDirectory")
         if ($load_taco_defaults) {
             $args_to_pass += '-SaneConfig'
         }
-        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
+        & powershell.exe -ExecutionPolicy Bypass -File "$InstallDirectory/Update-TacO.ps1" $args_to_pass
     }
 }
 
@@ -398,7 +398,7 @@ Function Update-StateVersion {
 
                 # Default installation directory is a subfolder underneath APPDATA
                 $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
-                New-Item "$InstallDirectory" -ItemType "directory"
+                New-Item "$InstallDirectory" -ItemType "directory" | Out-Null
 
                 # Prompt for an alternate installation directory
                 $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
@@ -547,7 +547,7 @@ if ($Remove) {
 #   questions after initial setup
 
 $OldStateFile = $(Join-Path "$env:APPDATA" update_arcdps.xml)
-if (-not $(Test-Path "$StateFile" -and Test-Path "$OldStateFile")) {
+if (-not $(Test-Path "$StateFile") -and $(Test-Path "$OldStateFile")) {
     $oldstate = Import-Clixml -Path "$OldStateFile"
     if (-not $($oldstate.ContainsKey('install_directory'))) {
         Write-Host "Identified old-version previous choices saved in $OldStateFile`n"
