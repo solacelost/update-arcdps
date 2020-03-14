@@ -104,7 +104,7 @@ Function Merge-TacOConfig {
 
     ForEach ($ChildNode in $OverrideRootNode.ChildNodes)
     {
-        $BaseNode = $BaseRootNode.SelectSingleNode("$($ChildNode.name)")
+        $BaseNode = $BaseRootNode.SelectSingleNode($ChildNode.name)
         if ($BaseNode -ne $null) {
             $BaseNode.Data = $ChildNode.Data
         } else {

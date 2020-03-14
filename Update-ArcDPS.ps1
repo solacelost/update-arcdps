@@ -332,8 +332,8 @@ Function Create-Shortcuts {
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
     $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
-    $Shortcut.WorkingDirectory = "$($state.binpath)"
-    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path "$($state.binpath)" "..\Gw2-64.exe"))
+    $Shortcut.WorkingDirectory = $state.binpath
+    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe"))
     $Shortcut.Save()
     if ($state.updatetaco) {
         $args_to_pass = @('-CreateShortcut', '-InstallDirectory', "$InstallDirectory")
@@ -412,7 +412,7 @@ Function Update-StateVersion {
                 if ($ButtonPressed -eq 'OK') {
                     if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
                         Remove-Item "$InstallDirectory" -recurse -force
-                        $InstallDirectory = "$($FileBrowser.SelectedPath)"
+                        $InstallDirectory = $FileBrowser.SelectedPath
                     }
                 }
                 $OldFiles = @(
@@ -626,8 +626,8 @@ if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0)
     $UserPrincipal = $(Get-Acl $env:appdata).Owner
     $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule($UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
-    $modify_path = "$($state.binpath)"
-    $modify_path_2 = $(Resolve-Path $(Join-Path "$($state.binpath)" ".."))
+    $modify_path = $state.binpath
+    $modify_path_2 = $(Resolve-Path $(Join-Path $state.binpath ".."))
     $modify_path_3 = $(Join-Path $modify_path_2 "addons")
     $xml_path = $($env:temp + "/acl.xml")
     $Acl | Export-Clixml -path "$xml_path"

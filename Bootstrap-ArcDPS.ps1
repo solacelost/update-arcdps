@@ -21,7 +21,7 @@ $ButtonPressed = $FileBrowser.ShowDialog()
 if ($ButtonPressed -eq 'OK') {
     if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
         Remove-Item "$InstallDirectory" -recurse -force
-        $InstallDirectory = "$($FileBrowser.SelectedPath)"
+        $InstallDirectory = $FileBrowser.SelectedPath
     }
 }
 
