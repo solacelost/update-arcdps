@@ -7,7 +7,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 # Default installation directory is a subfolder underneath APPDATA
 $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
-New-Item "$InstallDirectory" -ItemType "directory" | Out-Null
+New-Item "$InstallDirectory" -ItemType "directory" -EA 0 | Out-Null
 
 # Prompt for an alternate installation directory
 $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
@@ -46,7 +46,7 @@ Remove-Item "$InstallDirectory/update-arcdps-$installing_version" -recurse | Out
 Remove-Item "$InstallDirectory/Update-ArcDPS.zip" | Out-Null
 
 $desktop = [system.environment]::GetFolderPath("Desktop")
-
+$ScriptPath = $(Join-Path "$InstallDirectory" "Update-ArcDPS.ps1")
 # Drop a shortcut on the Desktop to setup the script
 $ShortcutFile = "$desktop\Update-ArcDPS Setup.lnk"
 Write-Host "Putting installation link at: $ShortcutFile"

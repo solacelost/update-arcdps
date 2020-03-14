@@ -142,7 +142,7 @@ Function Download-Folder([string]$src,
     }
     # Make our destination if it doesn't exist
     if (!$(Test-Path($dst))) {
-        New-Item $dst -type directory -Force | Out-Null
+        New-Item $dst -type directory -Force  -EA 0 | Out-Null
     }
     if ( $verbose.ispresent ) {
         Write-Host "`nRequested download of $src to $dst," `
@@ -399,7 +399,7 @@ Function Update-StateVersion {
 
                 # Default installation directory is a subfolder underneath APPDATA
                 $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
-                New-Item "$InstallDirectory" -ItemType "directory" | Out-Null
+                New-Item "$InstallDirectory" -ItemType "directory" -EA 0 | Out-Null
 
                 # Prompt for an alternate installation directory
                 $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
