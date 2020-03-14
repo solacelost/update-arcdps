@@ -333,7 +333,8 @@ Function Create-Shortcuts {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
-    $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
+    $ScriptLocation = $(Join-Path $InstallDirectory Update-ArcDPS.ps1)
+    $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptLocation`" -InstallDirectory `"$InstallDirectory`" -StartGW"
     $Shortcut.WorkingDirectory = $state.binpath
     $IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe")).Path
     $Shortcut.IconLocation = "$IconLocation"
@@ -442,6 +443,10 @@ Function Update-StateVersion {
                 $state | Export-Clixml -path $StateFile
                 pause
                 exit
+            } else {
+                $InstallDirectory = "$env:APPDATA"
+                $state['install_location'] = "$InstallDirectory"
+                Create-Shortcuts
             }
             $state['version'] = '0.4.3'
         }
