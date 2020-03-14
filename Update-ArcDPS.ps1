@@ -333,7 +333,8 @@ Function Create-Shortcuts {
     $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
     $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -InstallDirectory `"$InstallDirectory`" -StartGW"
     $Shortcut.WorkingDirectory = $state.binpath
-    $Shortcut.IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe")).Path
+    $IconLocation = $(Resolve-Path $(Join-Path $state.binpath "..\Gw2-64.exe")).Path
+    $Shortcut.IconLocation = "$IconLocation"
     $Shortcut.Save()
     if ($state.updatetaco) {
         $args_to_pass = @('-CreateShortcut', '-InstallDirectory', "$InstallDirectory")
@@ -483,7 +484,7 @@ if ($Remove) {
 
     # Remove Update-TacO.ps1
     if (Test-Path "$PSScriptRoot/Update-TacO.ps1") {
-        "$PSScriptRoot/Update-TacO.ps1 -InstallDirectory $InstallDirectory -Remove"
+        "$PSScriptRoot/Update-TacO.ps1" -InstallDirectory $InstallDirectory -Remove
     }
 
     if (Test-Path "$PSScriptRoot/TacOConfig_sane.xml") {
