@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.4.1
+    SCRIPT VERSION: 0.4.2
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.4.2 - Corrected variable type that caused TacO to error when launching
+            
     0.4.1 - Added more options around Update-TacO, increased verbosity during
             various tasks, and provided for some sane TacO defaults
     0.4.0 - Integrated Update-TacO.ps1
@@ -122,7 +124,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.4.1'
+$scriptversion = '0.4.2'
 $needsupdate = $false
 
 Function Download-Folder([string]$src,
