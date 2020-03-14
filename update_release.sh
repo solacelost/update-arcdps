@@ -2,10 +2,11 @@
 # This script is just for me to update releases easier and is run from my Linux
 #   laptop. It's not part of the normal release, not copied on updates, and
 #   isn't necessary for installation.
+commit=true
 while [ $# -gt 0 ]; do
     case $1 in
-        -c|--commit)
-            commit='true' ;;
+        -n|--no-commit)
+            commit='' ;;
         *)
             echo "Unknown option, $1" >&2
             exit 1
