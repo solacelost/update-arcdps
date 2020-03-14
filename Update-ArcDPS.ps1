@@ -45,7 +45,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.4.3 - Provided the ability to choose a directory to install Update-ArcDPS 
+    0.4.3 - Provided the ability to choose a directory to install Update-ArcDPS
     0.4.2 - Corrected variable type that caused TacO to error when launching
     0.4.1 - Added more options around Update-TacO, increased verbosity during
             various tasks, and provided for some sane TacO defaults
@@ -126,7 +126,7 @@ param (
 
 $scriptversion = '0.4.3'
 $needsupdate = $false
-$statefile = Join-Path "$InstallDirectory" update_arcdps.xml
+$StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
 Function Download-Folder([string]$src,
                          [string]$dst,
@@ -325,7 +325,7 @@ Function Get-YesOrNo([string]$Prompt, [switch]$DefaultYes) {
     }
 }
 
-Function CreateShortcuts {
+Function Create-Shortcuts {
     Write-Host "Creating Desktop shortcut"
     $ShortcutFile = "$DesktopDir\Guild Wars 2 - ArcDPS.lnk"
     $WScriptShell = New-Object -ComObject WScript.Shell
@@ -336,12 +336,128 @@ Function CreateShortcuts {
     $Shortcut.IconLocation = $(Resolve_path $(Join-Path "$($state.binpath)" "..\Gw2-64.exe"))
     $Shortcut.Save()
     if ($state.updatetaco) {
-        $args_to_pass = @('-CreateShortcut' '-InstallDirectory' "$InstallDirectory")
+        $args_to_pass = @('-CreateShortcut', '-InstallDirectory', "$InstallDirectory")
         if ($load_taco_defaults) {
             $args_to_pass += '-SaneConfig'
         }
         & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
     }
+}
+
+Function Update-StateVersion {
+    # Legacy stuff - ArcDPS no longer has extras or buildtemplates
+    if ( $state.ContainsKey('enablers') ) {
+        $state.Remove('enablers')
+    }
+    if ( ! $state.ContainsKey('version') ) {
+        $state['version'] = '0.3'
+    }
+    if ( ! $state.ContainsKey('autoupdate') ) {
+        if ($AutoUpdate) {
+            $state['autoupdate'] = $true
+        } else {
+            Write-Host "Update-ArcDPS is now capable of keeping itself updated."
+            $correct = $false
+            $state['autoupdate'] = $(
+                Get-YesOrNo -prompt "Would you like to enable automatic update of Update-ArcDPS?"
+            )
+        }
+    }
+    if ($state.version -ne $scriptversion) {
+        if ($state.version.split('.')[1] -eq '3') {
+            Write-Host "Update-ArcDPS is now capable of updating and launching TacO with Tekkit's Workshop marker pack enabled."
+            $state['updatetaco'] = $(
+                Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO?" -DefaultYes
+            )
+            $state['version'] = "0.4.0"
+        }
+        if ($state.version -eq "0.4.0") {
+            if ($state['updatetaco']) {
+                Write-Host "Update-ArcDPS can load some sane defaults into your TacO settings to reduce the screen clutter. You can always reenable individual settings yourself."
+                $load_taco_defaults = $(
+                    Get-YesOrNo -prompt "Would you like to load sane default options for TacO?" -DefaultYes
+                )
+                Write-Host "Update-ArcDPS no longer assumes you want to launch TacO every time."
+                $state['launchtaco'] = $(
+                    Get-YesOrNo -prompt "Would you like to enable TacO autostart with the same shortcut you update it with?" -DefaultYes
+                )
+            }
+            $state['version'] = '0.4.1'
+        }
+        if ($state.version -eq "0.4.1" -or $state.version -eq "0.4.2") {
+            $vestigal_file = $(Join-Path "$env:APPDATA" "Bootstrap-ArcDPS.ps1")
+            if (Test-Path "$vestigal_file") {
+                Remove-Item -Force -Path "$vestigal_file" -EA 0
+            }
+            Write-Host "Update-ArcDPS has now moved its default installation location to enable cleaner file storage."
+            $move_update_arcdps = $(
+                Get-YesOrNo -prompt "Would you like to move Update-ArcDPS into a unique folder to keep the files more contained?" -DefaultNo
+            )
+            if ($move_update_arcdps) {
+                Add-Type -AssemblyName System.Windows.Forms
+
+                # Default installation directory is a subfolder underneath APPDATA
+                $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
+                New-Item "$InstallDirectory" -ItemType "directory"
+
+                # Prompt for an alternate installation directory
+                $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
+                $FileBrowser = New-Object System.Windows.Forms.FolderBrowserDialog -Property @{
+                    SelectedPath = "$InstallDirectory"
+                    Description = "$BrowserText"
+                }
+                $ButtonPressed = $FileBrowser.ShowDialog()
+
+                # If you picked a different directory, remove our other created directory
+                if ($ButtonPressed -eq 'OK') {
+                    if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
+                        Remove-Item "$InstallDirectory" -recurse -force
+                        $InstallDirectory = "$($FileBrowser.SelectedPath)"
+                    }
+                }
+                $OldFiles = @(
+                    "Update-ArcDPS.ps1",
+                    "update_arcdps.xml",
+                    "Update-TacO.ps1",
+                    "Update-TacO",
+                    "TacOConfig_sane.xml"
+                )
+
+                Write-Host "Moving old files and folders into $InstallDirectory"
+                ForEach ($OldFile in $OldFiles) {
+                    $OldFilePath = $(Join-Path "$env:APPDATA" $OldFile)
+                    if (Test-Path "$OldFilePath") {
+                        Write-Host "$OldFilePath --> $(Join-Path $InstallDirectory $OldFile)"
+                        Move-Item "$OldFilePath" "$InstallDirectory"
+                    }
+                }
+                Create-Shortcuts
+                Write-Host ""
+                Write-Host "You should relaunch the script via the new shortcut (Which you're free to rename/move now) on the Desktop."
+                $state['version'] = '0.4.3'
+                $state['install_directory'] = "$InstallDirectory"
+                $state | Export-Clixml -path $StateFile
+                pause
+                exit
+            }
+            $state['version'] = '0.4.3'
+        }
+    }
+    # This is where update code should go for version-specific major changes
+    # Ex:
+    # if ($state['version'] -ne $scriptversion) {
+    #     if ($state['version'] -eq "0.3.2") {
+    #         <post 0.3.2 update code here>
+    #         $state['version'] = "0.3.3"
+    #     }
+    #     if ($state['version'] -eq "0.3.3") {
+    #         <post 0.3.3 update code here>
+    #         $state['version'] = "0.4.0"
+    #     }
+    #     <etc until version catches up to $scriptversion>
+    # }
+    $state['version'] = $scriptversion
+    $state | Export-Clixml -path $StateFile
 }
 
 $DesktopDir = [system.environment]::GetFolderPath("Desktop")
@@ -429,123 +545,24 @@ if ($Remove) {
 
 # Maintain state in a dedicated xml file so we don't look for GW2 or prompt for
 #   questions after initial setup
-if (Test-Path $StateFile) {
+
+$OldStateFile = $(Join-Path "$env:APPDATA" update_arcdps.xml)
+if (-not $(Test-Path "$StateFile" -and Test-Path "$OldStateFile")) {
+    $oldstate = Import-Clixml -Path "$OldStateFile"
+    if (-not $($oldstate.ContainsKey('install_directory'))) {
+        Write-Host "Identified old-version previous choices saved in $OldStateFile`n"
+        $state = $oldstate
+    }
+    Update-StateVersion
+} elseif (Test-Path "$StateFile") {
     Write-Host "Identified previous choices saved in $StateFile`n"
-    $state = Import-Clixml -Path $StateFile
-    # Legacy stuff - ArcDPS no longer has extras or buildtemplates
-    if ( $state.ContainsKey('enablers') ) {
-        $state.Remove('enablers')
-    }
-    if ( ! $state.ContainsKey('version') ) {
-        $state['version'] = '0.3'
-    }
-    if ( ! $state.ContainsKey('autoupdate') ) {
-        if ($AutoUpdate) {
-            $state['autoupdate'] = $true
-        } else {
-            Write-Host "Update-ArcDPS is now capable of keeping itself updated."
-            $correct = $false
-            $state['autoupdate'] = $(
-                Get-YesOrNo -prompt "Would you like to enable automatic update of Update-ArcDPS?"
-            )
-        }
-    }
-    if ($state.version -ne $scriptversion) {
-        if ($state.version.split('.')[1] -eq '3') {
-            Write-Host "Update-ArcDPS is now capable of updating and launching TacO with Tekkit's Workshop marker pack enabled."
-            $state['updatetaco'] = $(
-                Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO?" -DefaultYes
-            )
-            $state['version'] = "0.4.0"
-        }
-        if ($state.version -eq "0.4.0") {
-            if ($state['updatetaco']) {
-                Write-Host "Update-ArcDPS can load some sane defaults into your TacO settings to reduce the screen clutter. You can always reenable individual settings yourself."
-                $load_taco_defaults = $(
-                    Get-YesOrNo -prompt "Would you like to load sane default options for TacO?" -DefaultYes
-                )
-                Write-Host "Update-ArcDPS no longer assumes you want to launch TacO every time."
-                $state['launchtaco'] = $(
-                    Get-YesOrNo -prompt "Would you like to enable TacO autostart with the same shortcut you update it with?" -DefaultYes
-                )
-            }
-            $state['version'] = '0.4.1'
-        }
-        if ($state.version -eq "0.4.1" -or $state.version -eq "0.4.2") {
-            $vestigal_file = $(Join-Path "$env:APPDATA" "Bootstrap-ArcDPS.ps1")
-            if (Test-Path "$vestigal_file") {
-                Remove-Item -Force -Path "$vestigal_file" -EA 0
-            }
-            Write-Host "Update-ArcDPS has now moved its default installation location to enable cleaner file storage."
-            $move_update_arcdps = $(
-                Get-YesOrNo -prompt "Would you like to move Update-ArcDPS into a unique folder to keep the files more contained?" -DefaultNo
-            )
-            if ($move_update_arcdps) {
-                Add-Type -AssemblyName System.Windows.Forms
-
-                # Default installation directory is a subfolder underneath APPDATA
-                $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
-                New-Item "$InstallDirectory" -ItemType "directory"
-
-                # Prompt for an alternate installation directory
-                $BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
-                $FileBrowser = New-Object System.Windows.Forms.FolderBrowserDialog -Property @{
-                    SelectedPath = "$InstallDirectory"
-                    Description = "$BrowserText"
-                }
-                $ButtonPressed = $FileBrowser.ShowDialog()
-
-                # If you picked a different directory, remove our other created directory
-                if ($ButtonPressed -eq 'OK') {
-                    if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
-                        Remove-Item "$InstallDirectory" -recurse -force
-                        $InstallDirectory = "$($FileBrowser.SelectedPath)"
-                    }
-                }
-                $OldFiles = @(
-                    "Update-ArcDPS.ps1",
-                    "update_arcdps.xml",
-                    "Update-TacO.ps1",
-                    "Update-TacO",
-                    "TacOConfig_sane.xml"
-                )
-
-                Write-Host "Moving old files and folders into $InstallDirectory"
-                ForEach ($OldFile in $OldFiles) {
-                    $OldFilePath = $(Join-Path "$env:APPDATA" $OldFile)
-                    if (Test-Path "$OldFilePath") {
-                        Write-Host "$OldFilePath --> $(Join-Path $InstallDirectory $OldFile)"
-                        Move-Item "$OldFilePath" "$InstallDirectory"
-                    }
-                }
-                CreateShortcuts
-                Write-Host ""
-                Write-Host "You should relaunch the script via the new shortcut (Which you're free to rename/move now) on the Desktop."
-                pause
-                exit
-            }
-            $state['version'] = '0.4.3'
-        }
-    }
-    # This is where update code should go for version-specific major changes
-    # Ex:
-    # if ($state['version'] -ne $scriptversion) {
-    #     if ($state['version'] -eq "0.3.2") {
-    #         <post 0.3.2 update code here>
-    #         $state['version'] = "0.3.3"
-    #     }
-    #     if ($state['version'] -eq "0.3.3") {
-    #         <post 0.3.3 update code here>
-    #         $state['version'] = "0.4.0"
-    #     }
-    #     <etc until version catches up to $scriptversion>
-    # }
-    $state['version'] = $scriptversion
-    $state | Export-Clixml -path $StateFile
+    $state = Import-Clixml -Path "$StateFile"
+    Update-StateVersion
 } else { # If it's not already there, we'll go ahead and do initial setup
     $state = @{}
     $state['binpath'] = "$(Find-GuildWars2)\bin64\"
     $state['version'] = $scriptversion
+    $state['install_directory'] = "$InstallDirectory"
     if ($AutoUpdate) {
         $state['autoupdate'] = $true
     } else {
@@ -664,7 +681,7 @@ Write-Host "Download of $src is complete."
 # Create the shortcut if you asked for it
 if ($CreateShortcut) {
     Write-Host ""
-    CreateShortcuts
+    Create-Shortcuts
 }
 
 # Start Guild Wars 2 if you asked for it
@@ -682,7 +699,7 @@ if ($StartGW) {
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
                 -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
-        $args_to_pass = @('-InstallDirectory' "$InstallDirectory")
+        $args_to_pass = @('-InstallDirectory', "$InstallDirectory")
         if ($load_taco_defaults) {
             $args_to_pass += '-SaneConfig'
         }
