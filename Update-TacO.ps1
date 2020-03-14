@@ -33,10 +33,11 @@
 .NOTES
     Name: Update-TacO.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.2
+    SCRIPT VERSION: 0.3
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.3 - Adjusted default pathing to match Update-ArcDPS
     0.2 - Added Sane default configuration
     0.1 - Initial public release
 
@@ -72,14 +73,15 @@ param (
     [switch]$StartTacO,
     [switch]$CreateShortcut,
     [switch]$SaneConfig,
-    [string]$TacOPath="$env:APPDATA\Update-TacO"
+    [string]$InstallDirectory="$PSScriptRoot"
 )
 
-$scriptversion = '0.1'
-$TacOStateFile = Join-Path $TacOPath state.xml
-$TacOTempDir = Join-Path $env:temp TacO
-$TacODownloadDir = Join-Path $TacOPath TacO
-New-Item -Type Directory -Path $TacOPath -name TacO -EA 0 >$null
+$scriptversion = '0.3'
+$TacOPath = Join-Path "$InstallDirectory" "Update-TacO"
+$TacOStateFile = Join-Path $TacOPath "state.xml"
+$TacOTempDir = Join-Path "$env:TEMP" "TacO"
+$TacODownloadDir = Join-Path "$TacOPath" "TacO"
+New-Item -Type Directory -Path "$TacOPath" -name TacO -EA 0 >$null
 $SaveFiles = (
     "activationdata.xml", "notepad.txt", "poidata.xml", "TacOConfig.xml"
 )

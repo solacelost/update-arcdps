@@ -40,6 +40,7 @@ fi
 sed -i 's/\$scriptversion = .*/\$scriptversion = '"'$new_version'"'/' Update-ArcDPS.ps1
 sed -i 's/SCRIPT VERSION: .*/SCRIPT VERSION: '"$new_version"'/' Update-ArcDPS.ps1
 sed -i 's/\/[0-9]\.[0-9]\.[0-9]\//\/'"$new_version"'\//g' Bootstrap-ArcDPS.ps1
+sed -i 's/\$installing_version = .*/\$installing_version = '"'$new_version'"'/' Bootstrap-ArcDPS.ps1
 sed -i 's/\/[0-9]\.[0-9]\.[0-9]\//\/'"$new_version"'\//g' docs/README.md
 
 if [ -n "$commit" ]; then
