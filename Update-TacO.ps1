@@ -307,12 +307,16 @@ if ( $StartTacO ) {
         }
     }
     # Attempt to detect when the launcher is closed and Guild Wars 2 starts properly
-    While ($(
-        Get-Process | Where-Object { $_.ProcessName -eq 'Gw2-64' } | Select -ExpandProperty Handles
-    ) -le 1000) {
-        sleep 5
+    While ($GW2_Process = Get-Process -ProcessName Gw2-64 -EA 0) {
+        if ($GW2_Process.Handles -le 1000) {
+            sleep 5
+        } else {
+            break
+        }
     }
-    Start-Process -FilePath "$TacODownloadDir\GW2TacO.exe" -Verb RunAs -WorkingDirectory "$TacODownloadDir"
+    if ($GW2_Process -ne $null) {
+        Start-Process -FilePath "$TacODownloadDir\GW2TacO.exe" -Verb RunAs -WorkingDirectory "$TacODownloadDir"
+    }
 } else {
     if (!$CreateShortcut) {
         pause
