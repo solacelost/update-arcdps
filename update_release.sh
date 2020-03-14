@@ -31,8 +31,10 @@ if ! grep -qF "    $new_version - " Update-ArcDPS.ps1; then
     read -p 'Enter update text for the new version: ' update_text
     update_text_lines=$(echo "$update_text" | fold -s -w68)
     update_text_firstline=$(echo "$update_text_lines" | head -1)
-    update_text_remainder=$(echo "$update_text_lines" | tail -n +2)
-    sed -i '/^    Version History:$/a'"\            $update_text_remainder" Update-ArcDPS.ps1
+    if [ $(echo "$update_text_lines" | wc -l) -gt 1 ]; then
+        update_text_remainder=$(echo "$update_text_lines" | tail -n +2)
+        sed -i '/^    Version History:$/a'"\            $update_text_remainder" Update-ArcDPS.ps1
+    fi
     sed -i '/^    Version History:$/a'"\    $new_version - $update_text_firstline" Update-ArcDPS.ps1
 fi
 sed -i 's/\$scriptversion = .*/\$scriptversion = '"'$new_version'"'/' Update-ArcDPS.ps1
