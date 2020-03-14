@@ -281,13 +281,17 @@ Function Find-GuildWars2() {
     }
 }
 
-Function Get-YesOrNo([string]$prompt) {
+Function Get-YesOrNo([string]$Prompt, [switch]$DefaultYes) {
     $correct = $false
     While (!$correct) {
-        $yesorno = $(Read-Host -Prompt $prompt).ToUpper()
+        if ($DefaultYes) {
+            $yesorno = $(Read-Host -Prompt "$Prompt (Y/N Default: Y)").ToUpper()
+        } else {
+            $yesorno = $(Read-Host -Prompt "$Prompt (Y/N Default: N)").ToUpper()
+        }
         Switch -Exact ($yesorno) {
             "" {
-                $false
+                $DefaultYes
                 $correct = $true
                 break
             }
@@ -303,8 +307,13 @@ Function Get-YesOrNo([string]$prompt) {
             }
             Default {
                 Write-Host "'$yesorno' is not a valid option."
-                Write-Host "To answer in the negative, please either press 'Enter' or type the letter 'n' and press 'Enter.'"
-                Write-Host "To answer in the affirmative, type the letter 'y' and press 'Enter.'"
+                if ($DefaultYes) {
+                    Write-Host "To answer in the negative, type the letter 'n' and press 'Enter.'"
+                    Write-Host "To answer in the affirmative, either press 'Enter' or type the letter 'y' and press 'Enter.'"
+                } else {
+                    Write-Host "To answer in the negative, either press 'Enter' or type the letter 'n' and press 'Enter.'"
+                    Write-Host "To answer in the affirmative, type the letter 'y' and press 'Enter.'"
+                }
                 break
             }
         }
@@ -335,6 +344,10 @@ if ($Remove) {
     # Remove Update-TacO.ps1
     if (Test-Path "$PSScriptRoot/Update-TacO.ps1") {
         "$PSScriptRoot/Update-TacO.ps1 -Remove"
+    }
+
+    if (Test-Path "$PSScriptRoot/TacOConfig_sane.xml") {
+        Remove-Item -Force -Path "$PSScriptRoot/TacOConfig_sane.xml" -EA 0
     }
 
     # Remove the shortcut
@@ -404,7 +417,7 @@ if (Test-Path $StateFile) {
             Write-Host "Update-ArcDPS is now capable of keeping itself updated."
             $correct = $false
             $state['autoupdate'] = $(
-                Get-YesOrNo -prompt "Would you like to enable automatic update of Update-ArcDPS? (y/N)"
+                Get-YesOrNo -prompt "Would you like to enable automatic update of Update-ArcDPS?"
             )
         }
     }
@@ -412,8 +425,22 @@ if (Test-Path $StateFile) {
         if ($state.version.split('.')[1] -eq '3') {
             Write-Host "Update-ArcDPS is now capable of updating and launching TacO with Tekkit's Workshop marker pack enabled."
             $state['updatetaco'] = $(
-                Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO? (y/N)"
+                Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO?" -DefaultYes
             )
+            $state['version'] = "0.4.0"
+        }
+        if ($state.version -eq "0.4.0") {
+            if ($state['updatetaco']) {
+                Write-Host "Update-ArcDPS can load some sane defaults into your TacO settings to reduce the screen clutter. You can always reenable individual settings yourself."
+                $load_taco_defaults = $(
+                    Get-YesOrNo -prompt "Would you like to load these sane defaults?" -DefaultYes
+                )
+                Write-Host "Update-ArcDPS no longer assumes you want to launch TacO every time."
+                $state['launchtaco'] = $(
+                    Get-YesOrNo -prompt "Would you like to enable TacO autostart with the same shortcut you update it with?" -DefaultYes
+                )
+            }
+            $state['version'] = '0.4.1'
         }
     }
     # This is where update code should go for version-specific major changes
@@ -440,18 +467,29 @@ if (Test-Path $StateFile) {
     } else {
         Write-Host "Update-ArcDPS is capable of keeping itself updated."
         $state['autoupdate'] = $(
-            Get-YesOrNo -prompt "Would you like to enable AutoUpdate? (y/N)"
+            Get-YesOrNo -prompt "Would you like to enable AutoUpdate?"
         )
-        Write-Host "Update-ArcDPS can also update and launch TacO with Tekkit's Workshop marker pack enabled."
+        Write-Host "Update-ArcDPS can also update GW2TacO with Tekkit's Workshop marker pack enabled."
         $state['updatetaco'] = $(
-            Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO? (y/N)"
+            Get-YesOrNo -prompt "Would you like to enable Update-ArcDPS to manage TacO and Tekkit's updates?" -DefaultYes
         )
+        if ($state['updatetaco']) {
+            Write-Host "Update-ArcDPS can load some sane defaults into your TacO settings to reduce the screen clutter. You can always reenable individual settings yourself."
+            $load_taco_defaults = $(
+                Get-YesOrNo -prompt "Would you like to load these sane defaults?" -DefaultYes
+            )
+            Write-Host "Update-ArcDPS can also launch TacO for you every time you start the game."
+            $state['launchtaco'] = $(
+                Get-YesOrNo -prompt "Would you like to enable TacO autostart?" -DefaultYes
+            )
+        }
     }
     $state | Export-Clixml -path $StateFile
 }
 
 
 if ($state.autoupdate -or $AutoUpdate) {
+    Write-Host "Checking for updates to Update-ArcDPS script"
     $UpdateInfo = $(Invoke-WebRequest https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
     $LatestVersion = $(ConvertFrom-Json $UpdateInfo.content).tag_name
     if ($LatestVersion -ne $scriptversion) {
@@ -467,6 +505,9 @@ if ($state.autoupdate -or $AutoUpdate) {
         Copy-Item `
             $PSScriptRoot/update-arcdps-$LatestVersion/*.ps1 `
             $PSScriptRoot/
+        Copy-Item `
+            $PSScriptRoot/update-arcdps-$LatestVersion/TacOConfig_sane.xml `
+            $PSScriptRoot/
         Remove-Item $PSScriptRoot/update-arcdps-$LatestVersion -recurse
         Remove-Item $PSScriptRoot/Update-ArcDPS.zip
         Write-Host "New version of Update-ArcDPS is installed. Please rerun this script via your normal shortcut."
@@ -475,6 +516,7 @@ if ($state.autoupdate -or $AutoUpdate) {
     }
 }
 
+Write-Host "Verifying file permissions on necessary directories"
 $testpath = $($state.binpath + "/test.txt")
 Write-Output "Test" | Out-File -EA 0 -FilePath $testpath
 if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0) {
@@ -551,8 +593,15 @@ if ($CreateShortcut) {
             Invoke-WebRequest `
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
                 -OutFile "$PSScriptRoot/Update-TacO.ps1"
+            Invoke-WebRequest `
+                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
+                -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
-        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" -CreateShortcut
+        $args_to_pass = @('-CreateShortcut')
+        if ($load_taco_defaults) {
+            $args_to_pass += '-SaneConfig'
+        }
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
     }
 }
 
@@ -561,13 +610,24 @@ if ($StartGW) {
     Write-Host ""
     Write-Host "Starting Guild Wars 2"
     & $dst/../Gw2-64.exe
+    Write-Host "Starting Update-TacO"
     if ($state.updatetaco) {
         if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
             Invoke-WebRequest `
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
                 -OutFile "$PSScriptRoot/Update-TacO.ps1"
+            Invoke-WebRequest `
+                -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
+                -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
-        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" -StartTacO
+        $args_to_pass = @{}
+        if ($load_taco_defaults) {
+            $args_to_pass += '-SaneConfig'
+        }
+        if ($state['launchtaco']) {
+            $args_to_pass += '-StartTacO'
+        }
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" $args_to_pass
     }
 } else {
     pause
