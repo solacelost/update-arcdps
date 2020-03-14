@@ -45,7 +45,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.4.4 - Corrected a plethora of various bugs during implementation of new 
+    0.4.4 - Corrected a plethora of various bugs during implementation of new
             directory location features'
     0.4.3 - Provided the ability to choose a directory to install Update-ArcDPS
     0.4.2 - Corrected variable type that caused TacO to error when launching
@@ -486,7 +486,7 @@ if ($Remove) {
 
     # Remove Update-TacO.ps1
     if (Test-Path "$PSScriptRoot/Update-TacO.ps1") {
-        "$PSScriptRoot/Update-TacO.ps1" -InstallDirectory $InstallDirectory -Remove
+        & powershell.exe -ExecutionPolicy Bypass -File "$PSScriptRoot/Update-TacO.ps1" -InstallDirectory $InstallDirectory -Remove
     }
 
     if (Test-Path "$PSScriptRoot/TacOConfig_sane.xml") {
