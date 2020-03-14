@@ -45,7 +45,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.4.1 - Added more options around Update-TacO, increased verbosity during 
+    0.4.1 - Added more options around Update-TacO, increased verbosity during
             various tasks, and provided for some sane TacO defaults
     0.4.0 - Integrated Update-TacO.ps1
     0.3.7 - Final fix for permissions - add the addons directory to the
@@ -622,7 +622,7 @@ if ($StartGW) {
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
                 -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
-        $args_to_pass = @{}
+        $args_to_pass = @()
         if ($load_taco_defaults) {
             $args_to_pass += '-SaneConfig'
         }
