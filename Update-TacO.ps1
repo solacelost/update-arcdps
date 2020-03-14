@@ -33,10 +33,11 @@
 .NOTES
     Name: Update-TacO.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.3
+    SCRIPT VERSION: 0.4
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.4 - Corrected merge for uninstalled case
     0.3 - Adjusted default pathing to match Update-ArcDPS
     0.2 - Added Sane default configuration
     0.1 - Initial public release
@@ -76,7 +77,7 @@ param (
     [string]$InstallDirectory="$PSScriptRoot"
 )
 
-$scriptversion = '0.3'
+$scriptversion = '0.4'
 $TacOPath = Join-Path "$InstallDirectory" "Update-TacO"
 $TacOStateFile = Join-Path $TacOPath "state.xml"
 $TacOTempDir = Join-Path "$env:TEMP" "TacO"
@@ -94,6 +95,9 @@ Function Merge-TacOConfig {
         [Parameter(Mandatory = $true)] [string] $OverrideXMLfile
     )
 
+    if (-not $(Test-Path $BaseXMLFile)) {
+        return [xml](Get-Content $OverrideXMLFile)
+    }
     $originalXml = [xml](Get-Content $BaseXMLfile)
     $overrideXml = [xml](Get-Content $OverrideXMLfile)
 
