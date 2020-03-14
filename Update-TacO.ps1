@@ -15,6 +15,9 @@
 .PARAMETER CreateShortcut
     Automatically creates a shortcut on your Desktop that will run Update-TacO
     with the -StartTacO flag enabled for future runs (bypasses Execution Policy)
+.PARAMETER SaneConfig
+    Sets the configuration for TacO to some sane defaults to clutter your screen
+    less than leaving everything on by default.
 .PARAMETER TacOPath
     The path to which TacO, Tekkit's, and the Update-TacO state file should be
     saved. Defaults to the current user's AppData directory, in a folder named
@@ -30,10 +33,11 @@
 .NOTES
     Name: Update-TacO.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.1
+    SCRIPT VERSION: 0.2
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.2 - Added Sane default configuration
     0.1 - Initial public release
 
     LICENSE:
@@ -67,6 +71,7 @@ param (
     [switch]$Remove,
     [switch]$StartTacO,
     [switch]$CreateShortcut,
+    [switch]$SaneConfig,
     [string]$TacOPath="$env:APPDATA\Update-TacO"
 )
 
@@ -79,6 +84,34 @@ $SaveFiles = (
     "activationdata.xml", "notepad.txt", "poidata.xml", "TacOConfig.xml"
 )
 $SaveDirs = ("Data", "POIs")
+
+Function Merge-TacOConfig {
+    param (
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory = $true)] [string] $BaseXMLfile,
+        [Parameter(Mandatory = $true)] [string] $OverrideXMLfile
+    )
+
+    $originalXml = [xml](Get-Content $BaseXMLfile)
+    $overrideXml = [xml](Get-Content $OverrideXMLfile)
+
+    $RootElementname = $originalXML.DocumentElement.Name
+
+    $BaseRootNode = $originalXml.SelectSingleNode("/$RootElementname")
+    $OverrideRootNode = $OverrideXml.SelectSingleNode("/$RootElementname")
+
+    ForEach ($ChildNode in $OverrideRootNode.ChildNodes)
+    {
+        $BaseNode = $BaseRootNode.SelectSingleNode("$($ChildNode.name)")
+        if ($BaseNode -ne $null) {
+            $BaseNode.Data = $ChildNode.Data
+        } else {
+            $originalXml.DocumentElement.AppendChild($originalXml.ImportNode($ChildNode, $true))
+        }
+    }
+
+    return $originalXml
+}
 
 if ($Remove) {
     Remove-Item $TacOPath -Recurse -EA 0
@@ -233,6 +266,12 @@ if ($updatetekkits) {
     Invoke-WebRequest -uri http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one -OutFile $TacODownloadDir\POIs\tekkits.zip
     $state['tekkitsversion'] = $tekkitsversion
     $state | Export-Clixml -path $TacOStateFile
+}
+
+if ($SaneConfig) {
+    Write-Host "Updating TacOConfig from Sane configuration defaults"
+    $MergedConfig = Merge-TacOConfig "$TacODownloadDir\TacOConfig.xml" "$PSScriptRoot\TacOConfig_sane.xml"
+    $MergedConfig.Save("$TacODownloadDir\TacOConfig.xml")
 }
 
 if ($CreateShortcut) {
