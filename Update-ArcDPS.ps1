@@ -41,10 +41,12 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.4.5
+    SCRIPT VERSION: 0.4.6
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems 
+            due to not re-rendering variables into StateFile path
     0.4.5 - Corrected path problems with update shortcut
     0.4.4 - Corrected a plethora of various bugs during implementation of new
             directory location features'
@@ -127,7 +129,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.4.5'
+$scriptversion = '0.4.6'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
