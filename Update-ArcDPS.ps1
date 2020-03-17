@@ -45,7 +45,7 @@
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems 
+    0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems
             due to not re-rendering variables into StateFile path
     0.4.5 - Corrected path problems with update shortcut
     0.4.4 - Corrected a plethora of various bugs during implementation of new
@@ -601,7 +601,7 @@ if (-not $(Test-Path "$StateFile") -and $(Test-Path "$OldStateFile")) {
     $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
     $state | Export-Clixml -path $StateFile
 }
-if ("$OldStateFile" -ne $null -a $(Test-Path "$OldStateFile")) {
+if ("$OldStateFile" -ne $null -and $(Test-Path "$OldStateFile")) {
     Remove-Item -Force "$OldStateFile" -EA 0 | Out-Null
 }
 
