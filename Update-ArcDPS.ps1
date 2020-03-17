@@ -441,7 +441,8 @@ Function Update-StateVersion {
                 Write-Host "You should relaunch the script via the new shortcut (Which you're free to rename/move now) on the Desktop."
                 $state['version'] = '0.4.3'
                 $state['install_directory'] = "$InstallDirectory"
-                $state | Export-Clixml -path $StateFile
+                $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
+                $state | Export-Clixml -Path "$StateFile"
                 pause
                 exit
             } else {
@@ -466,6 +467,7 @@ Function Update-StateVersion {
     #     <etc until version catches up to $scriptversion>
     # }
     $state['version'] = $scriptversion
+    $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
     $state | Export-Clixml -path $StateFile
 }
 
@@ -594,7 +596,11 @@ if (-not $(Test-Path "$StateFile") -and $(Test-Path "$OldStateFile")) {
             )
         }
     }
+    $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
     $state | Export-Clixml -path $StateFile
+}
+if ("$OldStateFile" -ne $null -a $(Test-Path "$OldStateFile")) {
+    Remove-Item -Force "$OldStateFile" -EA 0 | Out-Null
 }
 
 
