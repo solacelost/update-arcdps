@@ -15,7 +15,7 @@ Some of my guild mates had a hard time downloading ArcDPS or remembering how to 
 #### There are two options, depending on how much you trust me.
 
 ### The easy way
-1. Right click on your Start button and click "Run", or press Ctrl+R on your keyboard.
+1. Right click on your Start button and click "Run", or press the Windows Key + R on your keyboard.
     ![Right Clicking Run](./docs_run.png)
 2. Copy the following and paste it into the "Open:" text box:
     ```
