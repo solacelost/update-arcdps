@@ -133,6 +133,22 @@ $scriptversion = '0.4.6'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
+# This disables TLS/SSL Verification of all Web-Requests and should not be used
+#   Unless you're having problems with Invoke-WebRequest using your OS
+#   certificate store
+add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
 Function Download-Folder([string]$src,
                          [string]$dst,
                          [switch]$recursive,
