@@ -64,7 +64,7 @@ I make heavy use of the `Invoke-WebRequest` cmdlet for PowerShell throughout thi
     ```
 
 1. This means it has already found Guild Wars 2 on your computer (It starts by looking in Program Files, but will expand to looking at every drive it can find)
-    - If you have multiple GW2 installations (multiboxing), it try to figure out which one you want, and maybe prompt you. If you're multiboxing, you can try using the -SearchPath option to adjust the path you would like it to search. This is also helpful if it's unable to find your installation for some reason (usually due to strangely named foleders or complex pathing)
+    - If you have multiple GW2 installations (multiboxing), it try to figure out which one you want, and maybe prompt you. If you're multiboxing, you can try using the -SearchPath option to adjust the path you would like it to search. This is also helpful if it's unable to find your installation for some reason (usually due to strangely named folders or complex pathing)
 1. As part of setup, it will ask you some prompts regarding whether or how you want features enabled (Auto Update, Update-TacO, etc.). Answer with the letter "Y" or the letter "N" to the prompts as appropriate.
 1. The script will go to the offical [ArcDPS installation sources](https://www.deltaconnected.com/arcdps/x64) and download everything, then create your shortcut and save the answers to the above questions in a file.
 1. If you have chosen to enable Update-TacO alongside Update-ArcDPS there will be a longer delay as it reaches out and downloads the latest version of GW2TacO and Tekkit's Workshop marker pack, creating a dedicated shortcut for GW2TacO as well.
