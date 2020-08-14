@@ -33,14 +33,15 @@
 .NOTES
     Name: Update-TacO.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.4
+    SCRIPT VERSION: 0.4.1
     Requires: Powershell v5 or higher.
 
     Version History:
-    0.4 - Corrected merge for uninstalled case
-    0.3 - Adjusted default pathing to match Update-ArcDPS
-    0.2 - Added Sane default configuration
-    0.1 - Initial public release
+    0.4.1 - Corrected pathing for Desktop directory for some cases
+    0.4   - Corrected merge for uninstalled case
+    0.3   - Adjusted default pathing to match Update-ArcDPS
+    0.2   - Added Sane default configuration
+    0.1   - Initial public release
 
     LICENSE:
     MIT License
@@ -77,7 +78,7 @@ param (
     [string]$InstallDirectory="$PSScriptRoot"
 )
 
-$scriptversion = '0.4'
+$scriptversion = '0.4.1'
 $TacOPath = Join-Path "$InstallDirectory" "Update-TacO"
 $TacOStateFile = Join-Path $TacOPath "state.xml"
 $TacOTempDir = Join-Path "$env:TEMP" "TacO"
@@ -119,9 +120,15 @@ Function Merge-TacOConfig {
     return $originalXml
 }
 
+$DesktopDir = [System.Environment]::GetFolderPath("Desktop")
+if ( ! Test-Path "$DesktopDir" ) {
+    Write-Host "Desktop directory doesn't exist, creating..."
+    New-Item -Path "$DesktopDir" -ItemType "directory"
+}
+
 if ($Remove) {
     Remove-Item $TacOPath -Recurse -EA 0
-    Remove-Item "$env:HOMEPATH\Desktop\GW2TacO.lnk" -EA 0
+    Remove-Item $(Join-Path "$DesktopDir" "GW2TacO.lnk") -EA 0
     Remove-Item $MyInvocation.MyCommand.Definition -EA 0
     Write-Host "Update-TacO and the managed TacO installation has been removed."
     pause
@@ -282,7 +289,7 @@ if ($SaneConfig) {
 
 if ($CreateShortcut) {
     $TargetFile = "$TacODownloadDir\GW2TacO.exe"
-    $ShortcutFile = "$env:HOMEPATH\Desktop\GW2TacO.lnk"
+    $ShortcutFile = $(Join-Path "$DesktopDir" "GW2TacO.lnk")
     if (Test-Path $ShortcutFile) {
         Write-Host "Removing old shortcut"
         Remove-Item $ShortcutFile -EA 0
