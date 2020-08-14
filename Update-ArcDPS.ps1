@@ -604,7 +604,7 @@ If ( $installed_sum -eq $arcdps_expected_sum ) {
     $arcdps = Invoke-WebRequest -UseBasicParsing -Uri "$src$file"
 
     Write-Host "Validating update checksum"
-    $arcdps_sum = -Join $($md5.ComputeHash($arcdps.content)| % {'{0:x2}' -f $_ })
+    $arcdps_sum = -Join $($md5.ComputeHash($arcdps.content) | ForEach {'{0:x2}' -f $_ })
 
     If ( $arcdps_expected_sum -eq $arcdps_sum ) {
         Write-Host "Expected checksum matches. Saving update to ArcDPS"
