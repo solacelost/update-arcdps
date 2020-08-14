@@ -518,11 +518,11 @@ if ("$OldStateFile" -ne $null -and $(Test-Path "$OldStateFile")) {
 
 if ($state.autoupdate -or $AutoUpdate) {
     Write-Host "Checking for updates to Update-ArcDPS script"
-    $UpdateInfo = $(Invoke-WebRequest https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
+    $UpdateInfo = $(Invoke-WebRequest -UseBasicParsing https://api.github.com/repos/solacelost/update-arcdps/releases/latest)
     $LatestVersion = $(ConvertFrom-Json $UpdateInfo.content).tag_name
     if ($LatestVersion -ne $scriptversion) {
         Write-Host "Update-ArcDPS version $LatestVersion is available. Downloading." -NoNewLine
-        Invoke-WebRequest `
+        Invoke-WebRequest -UseBasicParsing `
             -URI https://github.com/solacelost/update-arcdps/archive/$LatestVersion.zip `
             -OutFile $PSScriptRoot/Update-ArcDPS.zip
         Write-Host "." -NoNewLine
@@ -640,10 +640,10 @@ if ($StartGW) {
     Write-Host "Starting Update-TacO"
     if ($state.updatetaco) {
         if (! $(Test-Path "$PSScriptRoot/Update-TacO.ps1")) {
-            Invoke-WebRequest `
+            Invoke-WebRequest -UseBasicParsing `
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/Update-TacO.ps1 `
                 -OutFile "$PSScriptRoot/Update-TacO.ps1"
-            Invoke-WebRequest `
+            Invoke-WebRequest -UseBasicParsing `
                 -URI https://raw.githubusercontent.com/solacelost/update-arcdps/$scriptversion/TacOConfig_sane.xml `
                 -OutFile "$PSScriptRoot/TacOConfig_sane.xml"
         }
