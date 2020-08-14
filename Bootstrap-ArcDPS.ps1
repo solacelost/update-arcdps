@@ -1,7 +1,7 @@
 <# Run this with the following:
-powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.4.6/Bootstrap-ArcDPS.ps1')"
+powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.5.0/Bootstrap-ArcDPS.ps1')"
 #>
-$installing_version = '0.4.6'
+$installing_version = 'feature/fix_version'
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -35,6 +35,8 @@ Expand-Archive `
     -path "$InstallDirectory/Update-ArcDPS.zip" `
     -DestinationPath "$InstallDirectory" | Out-Null
 Write-Host "."
+# This means I can set feature branches to be downloadable
+$installing_version = $installing_version.Replace('/', '-')
 Copy-Item `
     "$InstallDirectory/update-arcdps-$installing_version/*.ps1" `
     "$InstallDirectory/" `
@@ -55,5 +57,5 @@ $Shortcut = $WScriptShell.CreateShortcut("$ShortcutFile")
 $Shortcut.TargetPath = "%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe"
 $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`" -InstallDirectory `"$InstallDirectory`" -CreateShortcut"
 $Shortcut.Save()
-Write-Host "`nUpdate-ArcDPS is bootstrapped! Run the `"Update-ArcDPS Setup`" shortcut on your desktop."
+Write-Host "`nUpdate-ArcDPS version $installing_version is bootstrapped! Run the `"Update-ArcDPS Setup`" shortcut on your desktop."
 pause
