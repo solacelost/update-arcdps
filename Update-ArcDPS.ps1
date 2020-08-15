@@ -137,6 +137,8 @@ $scriptversion = '0.5.0'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
+New-Item "$InstallDirectory" -ItemType "directory" -EA 0 | Out-Null
+
 Function Find-GuildWars2() {
     Write-Host "Looking for Guild Wars 2 in $SearchPath"
     # Reference https://www.vistax64.com/threads/how-to-stopping-a-search-after-the-file-is-found.156738/
