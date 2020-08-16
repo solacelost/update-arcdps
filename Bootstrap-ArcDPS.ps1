@@ -9,22 +9,6 @@ Add-Type -AssemblyName System.Windows.Forms
 $InstallDirectory = $(Join-Path "$env:APPDATA" "Update-ArcDPS")
 New-Item "$InstallDirectory" -ItemType "directory" -EA 0 | Out-Null
 
-# Prompt for an alternate installation directory
-$BrowserText = "Pick the installation location for Update-ArcDPS and press OK, or just Cancel to select the default ($InstallDirectory)"
-$FileBrowser = New-Object System.Windows.Forms.FolderBrowserDialog -Property @{
-    SelectedPath = "$InstallDirectory"
-    Description = "$BrowserText"
-}
-$ButtonPressed = $FileBrowser.ShowDialog()
-
-# If you picked a different directory, remove our other created directory
-if ($ButtonPressed -eq 'OK') {
-    if ($FileBrowser.SelectedPath -ne "$InstallDirectory") {
-        Remove-Item "$InstallDirectory" -recurse -force
-        $InstallDirectory = $FileBrowser.SelectedPath
-    }
-}
-
 # Download Update-ArcDPS release
 Write-Host "Downloading now." -NoNewLine
 Invoke-WebRequest `
