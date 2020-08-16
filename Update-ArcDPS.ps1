@@ -550,7 +550,7 @@ if ($state.autoupdate -or $AutoUpdate) {
 Write-Host "Verifying file permissions on necessary directories"
 $testpath = $($state.binpath + "/test.txt")
 Write-Output "Test" | Out-File -EA 0 -FilePath $testpath
-if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0) {
+if ( $(Get-Content $testpath -EA SilentlyContinue | Measure-Object).count -eq 0 ) {
     $Acl = Get-Acl $state.binpath
     $UserPrincipal = $(Get-Acl $env:appdata).Owner
     $Ar = New-Object System.Security.AccessControl.FileSystemAccessRule($UserPrincipal, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
