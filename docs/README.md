@@ -33,7 +33,7 @@ I make heavy use of the `Invoke-WebRequest` cmdlet for PowerShell throughout thi
     ````
 
     ![Run Dialog](./docs_run2.png)
-1. Press OK on the Run dialog. Pick an install location from the window that pops up, and press Enter when prompted to close the window.
+1. Press OK on the Run dialog.
 1. Double-click the Update-ArcDPS Setup shortcut on your desktop to pick up below after the "Auditable Way" guys catch up at the -CreateShortcut point.
     ![Setup Shortcut](./docs_setup_shortcut.png)
 
