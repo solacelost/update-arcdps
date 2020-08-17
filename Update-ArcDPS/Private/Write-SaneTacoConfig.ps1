@@ -1,4 +1,5 @@
-<TacOConfig>
+Function Write-SaneTacoConfig {
+    '<TacOConfig>
     <AutoHideMarkerEditor Data="1"/>
     <CategoryVisible_chest Data="0"/>
     <CategoryVisible_collectible Data="0"/>
@@ -188,4 +189,5 @@
     <TacticalLayerVisible Data="1"/>
     <TrailLayerVisible Data="1"/>
     <UseMetricDisplay Data="0"/>
-</TacOConfig>
+</TacOConfig>'
+}

@@ -1,0 +1,41 @@
+Version History:
+0.6.0 - Completely gutted everything, converting hacky scripts into a proper
+        PowerShell module and implementing Unit tests on as much PowerShell
+        Core as I could manage. 100% Deprecated all other methods of update,
+        installation, etc.
+0.5.0 - Remove recursive download function now that there is only one file,
+        remove complex parsing from Invoke-WebRequest to make Internet
+        Explorer warning stop, validate MD5 sums to determine if download
+        is needed, and validate MD5 sums on downloads. (Unreleased)
+0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems
+        due to not re-rendering variables into StateFile path
+0.4.5 - Corrected path problems with update shortcut
+0.4.4 - Corrected a plethora of various bugs during implementation of new
+        directory location features'
+0.4.3 - Provided the ability to choose a directory to install Update-ArcDPS
+0.4.2 - Corrected variable type that caused TacO to error when launching
+0.4.1 - Added more options around Update-TacO, increased verbosity during
+        various tasks, and provided for some sane TacO defaults
+0.4.0 - Integrated Update-TacO.ps1
+0.3.7 - Final fix for permissions - add the addons directory to the
+        permissions fix for ArcDPS to store its own configuration in.
+0.3.6 - Fix for variable escaping under certain path situations for the
+        last patch.
+0.3.5 - Check for write permissions on binpath and correct them if we don't
+        have access.
+0.3.4 - Corrected scriptversion variable (I really need to automate updating
+        versions between tags)
+0.3.3 - Fixed bad verb (Until vs While !)
+0.3.2 - Corrected some help pages, corrected behavior in search, and added
+        auto-update functionality.
+0.3.1 - Corrected breaking bugs
+0.3   - Removed legacy content (buildtemplates, extras)
+0.2.2 - Corrected searching, added option for exact match
+0.2.1 - Adjusted bootstrap methodology
+0.2   - Enabled bootstrapping - Added Bootstrap-ArcDPS.ps1
+        Removed requirement to modify execution policy and instead
+            bypass it on the shortcuts
+        Made the Gw2-64.exe search abuse traps and throw to make it faster
+        Significant amount of embarrassing commit history during tests
+        Updated documentation to reflect changes
+0.1   - Initial public release
