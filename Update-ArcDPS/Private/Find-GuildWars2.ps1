@@ -1,4 +1,4 @@
-Function Find-GuildWars2() {
+Function Find-GuildWars2([String]$Path = "/Program F*") {
     <#
     .SYNOPSIS
         Look for an installation of Guild Wars 2
@@ -15,9 +15,6 @@ Function Find-GuildWars2() {
     .LINK
         https://github.com/solacelost/update-arcdps
     #>
-    Param (
-        [String]$Path = "/Program F*"
-    )
 
     If ($(Get-ChildItem "$Path" | Measure-Object).Count -eq 0 -and $(Get-OSFamily) -ne "Windows") {
         Write-Log "Adjusting default path to '/usr/bin'"
