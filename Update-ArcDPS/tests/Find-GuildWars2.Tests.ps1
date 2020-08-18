@@ -54,5 +54,23 @@ InModuleScope Update-ArcDPS {
                 { Find-GuildWars2 } | Should -Throw
             }
         }
+        Context "Multiple files exist" {
+            BeforeAll {
+                New-Item -ItemType directory "/Fake Games/Guild Wars 2/bin64"
+                Write-Output "" > "/Fake Games/Guild Wars 2/GW2-64.exe"
+                New-Item -ItemType directory "/Program Files Fake/Guild Wars 2/bin64"
+                Write-Output "" > "/Program Files Fake/Guild Wars 2/GW2-64.exe"
+            }
+            AfterAll {
+                Remove-Item "/Fake Games" -Recurse -Force
+                Remove-Item "/Program Files Fake" -Recurse -Force
+            }
+            It "doesn't fail" {
+                { Find-GuildWars2 } | Should -Not -Throw
+            }
+            It "finds one copy of Guild Wars 2" {
+                Find-GuildWars2 | Should -BeIn @("/Program Files Fake/Guild Wars 2", "/Program Files Fake/Guild Wars 2")
+            }
+        }
     }
 }

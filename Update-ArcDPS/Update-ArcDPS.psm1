@@ -21,12 +21,13 @@
 
 $UpdateArcDPSFolder = Join-Path "$env:APPDATA" Update-ArcDPS
 New-Item "$UpdateArcDPSFolder" -ItemType directory -EA 0 | Out-Null
-Set-PSFLoggingProvider -Name filesystem -Enabled $false | Out-Null
+Set-PSFLoggingProvider -Name Filesystem -Enabled $false | Out-Null
 Set-PSFLoggingProvider -Name LogFile -LogName 'UpdateArcDPS' -Enabled $true `
     -FilePath $(Join-Path "$UpdateArcDPSFolder" Update-ArcDPS.log)
 Set-Alias Write-Log Write-PSFMessage
 
 $PrivateFunctions = @(
+    "Get-OSFamily",
     "Find-GuildWars2"
 )
 $PublicFunctions = @(
