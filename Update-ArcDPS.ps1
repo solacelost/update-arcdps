@@ -41,10 +41,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.5.0
+    SCRIPT VERSION: 0.5.1
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.5.1 - Corrected undefined variable
     0.5.0 - Correcting download mechanism for deltaconnected site change
     0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems
             due to not re-rendering variables into StateFile path
@@ -130,7 +131,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.5.0'
+$scriptversion = '0.5.1'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
