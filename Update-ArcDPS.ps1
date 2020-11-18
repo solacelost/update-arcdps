@@ -129,103 +129,9 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.4.6'
+$scriptversion = '0.5.0'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
-
-Function Download-Folder([string]$src,
-                         [string]$dst,
-                         [switch]$recursive,
-                         [switch]$verbose) {
-    # Ensure our inputs end with trailing slashes to make concatenation work
-    #   predictably
-    if ( $src -notmatch '\/$' ) {
-        $src = "$src/"
-    }
-    if ( $dst -notmatch '[\/]$' ) {
-        $dst = "$dst/"
-    }
-    # Make our destination if it doesn't exist
-    if (!$(Test-Path($dst))) {
-        New-Item $dst -type directory -Force  -EA 0 | Out-Null
-    }
-    if ( $verbose.ispresent ) {
-        Write-Host "`nRequested download of $src to $dst," `
-          "recursive: $recursive`n"
-    }
-
-    # Collect our source
-    $site = Invoke-WebRequest $src
-
-    # Check the date that we last downloaded this src
-    if ( Test-Path $dst\update.xml) {
-        $last = Import-Clixml -path $dst\update.xml -EA SilentlyContinue
-    } else {
-        $last = [DateTime]'1 Jan 1970 00:01'
-    }
-    # Identify the modified dates in the source
-    $dates = $(
-      $site.parsedhtml.childnodes[1].childnodes[1].childnodes[1].childnodes | `
-        Where-Object {
-          $_.nodeName -eq "#text"
-        } | Select-Object -property data | `
-        Select-String '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'
-    )
-    # Pick out the newest as an integer
-    $latest = $($dates | ForEach-Object {
-        [DateTime]$_.matches.value
-      } | sort)[-1]
-    # If the latest update to this dst is newer than the last, do an update and
-    #   update the file
-    if ( $last.toUniversalTime() -lt $latest.toUniversalTime() ) {
-        if ( $verbose.ispresent ) {
-            Write-Host "Last updated on:          $last"
-            Write-Host "Latest version available: $latest"
-        }
-        Write-Host "Update to $dst is available, downloading files"
-        $doUpdate = $true
-        $latest | Export-Clixml -path $dst\update.xml
-    } else {
-        if ( $verbose.ispresent ) {
-            Write-Host "Last updated on:          $last"
-            Write-Host "Latest version available: $latest"
-        }
-        Write-Host "No update to $dst, skipping files`n"
-        $doUpdate = $false
-    }
-
-    # Iterate through the identified links
-    $site.Links | ForEach {
-        $link = $_.href
-        # Standard links to arrange the table get trimmed out
-        if ( $link -notmatch '^(\?|\/)' ) {
-            # Indentify directories
-            if ( $link -match '\/$' ) {
-                if ( $verbose.ispresent ) {
-                    Write-Host "  Sub-Directory: $src$link"
-                }
-                if ( $recursive.ispresent ) {
-                    if ( $verbose.ispresent) {
-                        Download-Folder -src "$src$link" -dst "$dst$link" `
-                          -recursive -verbose
-                    } else {
-                        Download-Folder -src "$src$link" -dst "$dst$link" `
-                          -recursive
-                    }
-                } else {
-                    if ( $verbose.ispresent ) {
-                        Write-Host "  Recursion not requested, skipping..."
-                    }
-                }
-            } else {
-                if ( $doUpdate ) {
-                    Write-Host "  Downloading: $src$link"
-                    Invoke-WebRequest "$src$link" -OutFile "$dst$link"
-                }
-            }
-        }
-    }
-}
 
 Function Find-GuildWars2() {
     Write-Host "Looking for Guild Wars 2 in $SearchPath"
@@ -676,23 +582,8 @@ $src = 'https://www.deltaconnected.com/arcdps/x64/'
 # To our GW2/bin64 directory
 $dst = $state.binpath
 
-# Recursively, so we grab all subfolders too
-# NOTE: Download-Folder checks modification date and won't update if the listing
-#   shows that we have the same version
-Download-Folder -src $src -dst $dst -recursive
+Download-Folder -src $src -dst $dst
 
-Write-Host "`n`n"
-
-# Remove any legacy extras
-@( "buildtemplates", "extras" ) | ForEach {
-    $dll = "$($dst)d3d9_arcdps_$($_).dll"
-    if ( Test-Path "$dll" ) {
-        Write-Host "Removing legacy installation of $_"
-        Remove-Item "$dll"
-    }
-}
-
-Write-Host ""
 Write-Host "Download of $src is complete."
 
 # Create the shortcut if you asked for it
