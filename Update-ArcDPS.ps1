@@ -41,10 +41,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.4.6
+    SCRIPT VERSION: 0.5.0
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.5.0 - Correcting download mechanism for deltaconnected site change
     0.4.6 - Corrected bug that sometimes resulted in StateFile pathing problems
             due to not re-rendering variables into StateFile path
     0.4.5 - Corrected path problems with update shortcut
