@@ -611,8 +611,6 @@ If ( $installed_sum -eq $arcdps_expected_sum ) {
     }
 }
 
-Write-Host "Download of $src is complete."
-
 # Create the shortcut if you asked for it
 if ($CreateShortcut) {
     Write-Host ""
