@@ -582,6 +582,7 @@ if (Test-Path $SetupScript) {
 # Download ArcDPS
 $utf8 = New-Object -TypeName System.Text.UTF8Encoding
 $src = 'https://www.deltaconnected.com/arcdps/x64/'
+$dst = $state.binpath
 # To our GW2/bin64 directory
 $file = 'd3d9.dll'
 $sumfile = "$file.md5sum"
@@ -593,7 +594,7 @@ $arcdps_expected_sum = $utf8.GetString(
 $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
 
 $ErrorActionPreference = "SilentlyContinue"
-$installed_sum = $(Get-FileHash $(Join-Path $state.binpath '/d3d9.dll')).Hash.ToLower()
+$installed_sum = $(Get-FileHash $(Join-Path $dst '/d3d9.dll')).Hash.ToLower()
 $ErrorActionPreference = "Continue"
 
 If ( $installed_sum -eq $arcdps_expected_sum ) {
@@ -607,7 +608,7 @@ If ( $installed_sum -eq $arcdps_expected_sum ) {
 
     If ( $arcdps_expected_sum -eq $arcdps_sum ) {
         Write-Host "Expected checksum matches. Saving update to ArcDPS"
-        [System.IO.File]::WriteAllBytes($(Join-Path $state.binpath '/d3d9.dll'), $arcdps.content)
+        [System.IO.File]::WriteAllBytes($(Join-Path $dst '/d3d9.dll'), $arcdps.content)
     } Else {
         Write-Error -Message "ArcDPS download did not match expected MD5 sum. Not saving file. Please try again later." `
             -Category MetadataError -ErrorID MD5 -TargetObject $arcdps.content
