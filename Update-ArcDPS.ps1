@@ -579,6 +579,7 @@ if (Test-Path $SetupScript) {
 }
 
 # Download ArcDPS
+$utf8 = New-Object -TypeName System.Text.UTF8Encoding
 $src = 'https://www.deltaconnected.com/arcdps/x64/'
 # To our GW2/bin64 directory
 $file = 'd3d9.dll'
