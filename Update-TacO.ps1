@@ -142,11 +142,11 @@ Write-Host "Downloading TacO Information"
 $taco = $(Invoke-WebRequest http://www.gw2taco.com/)
 $tacowidget = $(
     $taco.parsedHtml.body.getElementsByClassName("widget LinkList") `
-        | Where-Object {$_.id -eq "LinkList1"}
+        | Where-Object {$_.id -eq "LinkList4"}
 )
 # Pull only the links object from the widget
 $tacolinks = $(
-    $tacowidget.children | Where-Object {$_.outerText -match "^Download Build"}
+    $tacowidget.children | Where-Object {$_.outerText -match "^DOWNLOAD the latest build"}
 )
 # Just grab the very top link
 $tacolatest = $tacolinks.firstChild.firstChild.firstChild
