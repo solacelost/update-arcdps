@@ -150,10 +150,8 @@ $tacolinks = $(
 )
 # Just grab the very top link
 $tacolatest = $tacolinks.firstChild.firstChild.firstChild
-# Set the dropbox shortcut to auto-download
-$tacolink = $tacolatest.href.replace('dl=0', 'dl=1')
 # Grab only the build of the latest version
-$tacoversion = $tacolatest.innerHTML.split(' ')[-1]
+$tacoversion = $tacolatest.innerHTML.split('/')[-2]
 
 Write-Host "Identified newest available TacO version $tacoversion."
 if ( $state.ContainsKey('tacoversion') ) {
