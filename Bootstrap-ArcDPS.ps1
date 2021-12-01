@@ -1,7 +1,7 @@
 <# Run this with the following:
-powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.5.3/Bootstrap-ArcDPS.ps1')"
+powershell -c "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; ; iex(New-Object Net.WebClient).DownloadString('https://github.com/solacelost/update-arcdps/raw/0.5.4/Bootstrap-ArcDPS.ps1')"
 #>
-$installing_version = '0.5.3'
+$installing_version = '0.5.4'
 
 Add-Type -AssemblyName System.Windows.Forms
 
