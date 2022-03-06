@@ -139,19 +139,20 @@ if (Test-Path $TacOStateFile) {
 }
 
 Write-Host "Downloading TacO Information"
-$taco = $(Invoke-WebRequest http://www.gw2taco.com/)
-$tacowidget = $(
-    $taco.parsedHtml.body.getElementsByClassName("widget LinkList") `
-        | Where-Object {$_.id -eq "LinkList4"}
-)
-# Pull only the links object from the widget
-$tacolinks = $(
-    $tacowidget.children | Where-Object {$_.outerText -match "^DOWNLOAD the latest build"}
-)
-# Just grab the very top link
-$tacolatest = $tacolinks.firstChild.firstChild.firstChild
-# Grab only the build of the latest version
-$tacoversion = $tacolatest.innerHTML.split('/')[-2]
+$latestRelease = Invoke-WebRequest https://github.com/BoyC/GW2TacO/releases/latest -Headers @{"Accept"="application/json"}
+$json = $latestRelease.Content | ConvertFrom-Json
+
+# Get the version
+$tacoversion = $json.tag_name
+$tacolinkversion = "https://github.com/BoyC/GW2TacO/releases/tag/$tacoversion"
+
+#Get the download link (a little fragile)
+$taco = $(Invoke-WebRequest $tacolinkversion).Links | Where-Object {$_.href -like "*/download/*"}
+if ($taco -is [array]) {
+    $tacolink = "https://github.com$($taco[0].href)"
+} else {
+    $tacolink = "https://github.com$($taco.href)"
+}
 
 Write-Host "Identified newest available TacO version $tacoversion."
 if ( $state.ContainsKey('tacoversion') ) {
