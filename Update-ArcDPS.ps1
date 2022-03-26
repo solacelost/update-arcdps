@@ -41,10 +41,11 @@
 .NOTES
     Name: Update-ArcDPS.ps1
     Author: James Harmison
-    SCRIPT VERSION: 0.5.4
+    SCRIPT VERSION: 0.5.5
     Requires: Powershell v5 or higher.
 
     Version History:
+    0.5.5 - Fixed TacO update - thanks @Rukko!
     0.5.4 - Fixed TacO downloads
     0.5.3 - Corrected parsing for TacO website.
     0.5.2 - Fixed up missing variable
@@ -134,7 +135,7 @@ param (
     [string]$SearchPath="C:\Program F*"
 )
 
-$scriptversion = '0.5.4'
+$scriptversion = '0.5.5'
 $needsupdate = $false
 $StateFile = Join-Path "$InstallDirectory" update_arcdps.xml
 
